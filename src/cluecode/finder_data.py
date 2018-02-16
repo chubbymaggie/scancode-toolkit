@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2018 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -33,8 +33,12 @@ def set_from_text(text):
 
 JUNK_EMAILS = set_from_text(u'''
     test@test.com
+    exmaple.com
+    example.com
+    example.net
+    example.org
+    test.com
 ''')
-
 
 JUNK_HOSTS_AND_DOMAINS = set_from_text(u'''
     exmaple.com
@@ -51,11 +55,9 @@ JUNK_HOSTS_AND_DOMAINS = set_from_text(u'''
     hostname
 ''')
 
-
 JUNK_IPS = set_from_text(u'''
     1.2.3.4
 ''')
-
 
 JUNK_URLS = set_from_text(u'''
     http://www.adobe.com/2006/mxml
@@ -129,7 +131,6 @@ JUNK_URLS = set_from_text(u'''
     http://gcc.gnu.org/bugs.html
 ''')
 
-
 JUNK_URL_PREFIXES = tuple(set_from_text('''
     http://www.springframework.org/dtd/
     http://www.slickedit.com/dtd/
@@ -170,7 +171,6 @@ JUNK_URL_PREFIXES = tuple(set_from_text('''
     http://www.oasis-open.org/docbook/xml/
 '''))
 
-
 JUNK_URL_SUFFIXES = tuple(set_from_text('''
    .png
    .jpg
@@ -187,7 +187,7 @@ def classify(s, data_set):
     if not s:
         return False
     s = s.lower().strip('/')
-    if s in data_set:
+    if any(d in s for d in data_set):
         return False
     return True
 

@@ -1,83 +1,99 @@
 {
   "scancode_notice": "Generated with ScanCode and provided on an \"AS IS\" BASIS, WITHOUT WARRANTIES\nOR CONDITIONS OF ANY KIND, either express or implied. No content created from\nScanCode should be considered or used as legal advice. Consult an Attorney\nfor any legal advice.\nScanCode is a free software code scanning tool from nexB Inc. and others.\nVisit https://github.com/nexB/scancode-toolkit/ for support and download.",
   "scancode_options": {
+    "input": "<path>",
     "--copyright": true,
-    "--license": true,
     "--email": true,
-    "--url": true,
-    "--license-score": 0,
-    "--ignore": [],
-    "--format": "json"
+    "--json": "<file>",
+    "--license": true,
+    "--url": true
   },
-  "files_count": 11,
+  "files_count": 6,
   "files": [
     {
-      "path": "basic.tgz/basic",
-      "scan_errors": [],
+      "path": "basic.tgz",
+      "type": "directory",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
+    },
+    {
+      "path": "basic.tgz/basic",
+      "type": "directory",
+      "licenses": [],
+      "copyrights": [],
+      "emails": [],
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dbase.fdt",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir",
-      "scan_errors": [],
+      "type": "directory",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir/e.tar",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir/subdir",
-      "scan_errors": [],
+      "type": "directory",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir/subdir/a.aif",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir2",
-      "scan_errors": [],
+      "type": "directory",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir2/subdir",
-      "scan_errors": [],
+      "type": "directory",
       "licenses": [],
       "copyrights": [],
       "emails": [],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir2/subdir/bcopy.s",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [
         {
           "key": "bsd-original-uc",
@@ -87,7 +103,7 @@
           "owner": "Regents of the University of California",
           "homepage_url": "ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change",
           "text_url": "http://www.xfree86.org/3.3.6/COPYRIGHT2.html",
-          "dejacode_url": "https://enterprise.dejacode.com/urn/urn:dje:license:bsd-original-uc",
+          "reference_url": "https://enterprise.dejacode.com/urn/urn:dje:license:bsd-original-uc",
           "spdx_license_key": "BSD-4-Clause-UC",
           "spdx_url": "https://spdx.org/licenses/BSD-4-Clause-UC",
           "start_line": 25,
@@ -136,11 +152,12 @@
           "start_line": 17,
           "end_line": 17
         }
-      ]
+      ],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/dir2/subdir/config.conf",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [],
       "copyrights": [],
       "emails": [],
@@ -150,11 +167,12 @@
           "start_line": 2,
           "end_line": 2
         }
-      ]
+      ],
+      "scan_errors": []
     },
     {
       "path": "basic.tgz/basic/main.c",
-      "scan_errors": [],
+      "type": "file",
       "licenses": [
         {
           "key": "gpl-2.0",
@@ -164,7 +182,7 @@
           "owner": "Free Software Foundation (FSF)",
           "homepage_url": "http://www.gnu.org/licenses/gpl-2.0.html",
           "text_url": "http://www.gnu.org/licenses/gpl-2.0.txt",
-          "dejacode_url": "https://enterprise.dejacode.com/urn/urn:dje:license:gpl-2.0",
+          "reference_url": "https://enterprise.dejacode.com/urn/urn:dje:license:gpl-2.0",
           "spdx_license_key": "GPL-2.0",
           "spdx_url": "https://spdx.org/licenses/GPL-2.0",
           "start_line": 5,
@@ -186,7 +204,7 @@
           "owner": "Regents of the University of California",
           "homepage_url": "http://www.opensource.org/licenses/BSD-3-Clause",
           "text_url": "http://www.opensource.org/licenses/BSD-3-Clause",
-          "dejacode_url": "https://enterprise.dejacode.com/urn/urn:dje:license:bsd-new",
+          "reference_url": "https://enterprise.dejacode.com/urn/urn:dje:license:bsd-new",
           "spdx_license_key": "BSD-3-Clause",
           "spdx_url": "https://spdx.org/licenses/BSD-3-Clause",
           "start_line": 5,
@@ -221,7 +239,8 @@
           "end_line": 3
         }
       ],
-      "urls": []
+      "urls": [],
+      "scan_errors": []
     }
   ]
 }

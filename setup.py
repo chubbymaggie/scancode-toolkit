@@ -17,7 +17,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-version = '2.1.0'
+version = '2.3.0'
 
 
 #### Small hack to force using a plain version number if the option
@@ -92,18 +92,14 @@ def read(*names, **kwargs):
     ).read()
 
 
-long_description = '%s\n%s' % (
-    read('README.rst'),
-    re.sub(':obj:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
-)
-
-
 setup(
     name='scancode-toolkit',
     version=get_version(),
     license='Apache-2.0 with ScanCode acknowledgment and CC0-1.0 and others',
-    description='ScanCode is a tool to scan code for license, copyright, package and their documented dependencies and other interesting facts.',
-    long_description=long_description,
+    description=
+        'ScanCode is a tool to scan code for license, copyright, package '
+        'and their documented dependencies and other interesting facts.',
+    long_description=read('README.rst'),
     author='ScanCode',
     author_email='info@aboutcode.org',
     url='https://github.com/nexB/scancode-toolkit',
@@ -128,64 +124,69 @@ setup(
     ],
     install_requires=[
         # cluecode
+        # Some nltk version ranges are buggy
+        'nltk >= 3.2, < 4.0',
+        'publicsuffix2',
         'py2-ipaddress >= 2.0, <3.0',
         'url >= 0.1.4',
-        'publicsuffix2',
-        # Some lntk version ranges were buggy
-        'nltk >= 3.2, < 4.0',
 
         # extractcode
         'patch >= 1.15, < 1.20 ',
         # to work around bug http://bugs.python.org/issue19839
         # on multistream bzip2 files: this can removed in Python 3.
         'bz2file >= 0.98',
+
+        # commoncode
+        'backports.os == 0.1.1',
+        'future >= 0.16.0, < 0.17.0',
         'text-unidecode >= 1.0, < 2.0',
 
         # licensedcode
-        'PyYAML >= 3.0, <4.0',
         'bitarray >= 0.8.1, < 1.0.0',
         'intbitset >= 2.3.0,  < 3.0',
         'pyahocorasick >= 1.1, < 1.2',
-        'attrs >=16.0, < 17.0',
-
-        # caching
-        'zc.lockfile >= 1.0.0, < 2.0.1',
-        'yg.lockfile >= 2.0.1, < 3.0.0',
-            # used by yg.lockfile
-            'contextlib2', 'pytz', 'tempora', 'jaraco.timing',
-        'psutil >= 5.0.0, < 6.0.0',
+        'PyYAML >= 3.0, <4.0',
 
         # textcode
         'Beautifulsoup >= 3.2.0, <4.0.0',
         'Beautifulsoup4 >= 4.3.0, <5.0.0',
         'html5lib',
         'six',
-
-        # typecode and textcode
-        'pygments >= 2.0.1, <3.0.0',
-        'pdfminer >= 20140328',
-
-        # pymaven
-        'pymaven-patch >= 0.2.4',
+        'pdfminer.six >= 20170720',
+        'pycryptodome >= 3.4',
 
         # typecode
-        'chardet >= 3.0.0, <4.0.0',
         'binaryornot >= 0.4.0',
-
-        # scancode and AboutCode
-        'click >= 6.0.0, < 7.0.0',
-        'jinja2 >= 2.7.0, < 3.0.0',
-        'MarkupSafe >= 0.23',
-        'colorama',
-        'simplejson',
-        'spdx-tools >= 0.5.1',
+        'chardet >= 3.0.0, <4.0.0',
+        'pygments >= 2.0.1, <3.0.0',
 
         # packagedcode
+        'pymaven-patch >= 0.2.4',
         'requests >= 2.7.0, < 3.0.0',
         'schematics_patched',
 
-        # misc
+        # scancode
+        'click >= 6.0.0, < 7.0.0',
+        'colorama >= 0.3.9',
+        'pluggy >= 0.4.0, < 1.0',
+        'attrs >=17.0, < 18.0',
+        'typing >=3.6, < 3.7',
+
+        # scancode outputs
+        'jinja2 >= 2.7.0, < 3.0.0',
+        'MarkupSafe >= 0.23',
+        'simplejson',
+        'spdx-tools >= 0.5.4',
         'unicodecsv',
+
+        # ScanCode caching and locking
+        'psutil >= 5.0.0, < 6.0.0',
+        'yg.lockfile >= 2.0.1, < 3.0.0',
+            # used by yg.lockfile
+            'contextlib2', 'pytz', 'tempora', 'jaraco.timing',
+        'zc.lockfile >= 1.0.0, < 2.0.1',
+
+
     ],
     extras_require={
         ':platform_system == "Windows"': ['lxml == 3.6.0'],
@@ -197,6 +198,84 @@ setup(
         'console_scripts': [
             'scancode = scancode.cli:scancode',
             'extractcode = scancode.extract_cli:extractcode',
+        ],
+
+        # scancode_pre_scan is the entry point for pre_scan plugins executed
+        # before the scans.
+        #
+        # Each entry hast this form:
+        #   plugin-name = fully.qualified.module:PluginClass
+        # where plugin-name must be a unique name for this entrypoint.
+        #
+        # See also plugincode.pre_scan module for details and doc.
+        'scancode_pre_scan': [
+            'ignore = scancode.plugin_ignore:ProcessIgnore',
+        ],
+
+        # scancode_scan is the entry point for scan plugins that run a scan
+        # after the pre_scan plugins and before the post_scan plugins.
+        #
+        # Each entry hast this form:
+        #   plugin-name = fully.qualified.module:PluginClass
+        # where plugin-name must be a unique name for this entrypoint.
+        #
+        # IMPORTANT: The plugin-name is also the "scan key" used in scan results
+        # for this scanner.
+        #
+        # See also plugincode.scan module for details and doc.
+        'scancode_scan': [
+            'info = scancode.plugin_info:InfoScanner',
+            'licenses = scancode.plugin_license:LicenseScanner',
+            'copyrights = scancode.plugin_copyright:CopyrightScanner',
+            'packages = scancode.plugin_package:PackageScanner',
+            'emails = scancode.plugin_email:EmailScanner',
+            'urls = scancode.plugin_url:UrlScanner',
+        ],
+
+        # scancode_post_scan is the entry point for post_scan plugins executed
+        # after the scan plugins and before the output plugins.
+        #
+        # Each entry hast this form:
+        #   plugin-name = fully.qualified.module:PluginClass
+        # where plugin-name must be a unique name for this entrypoint.
+        #
+        # See also plugincode.post_scan module for details and doc.
+        'scancode_post_scan': [
+            'mark-source = scancode.plugin_mark_source:MarkSource',
+        ],
+
+        # scancode_output_filter is the entry point for filter plugins executed
+        # after the post-scan plugins and used by the output plugins to
+        # exclude/filter certain files or directories from the codebase.
+        #
+        # Each entry hast this form:
+        #   plugin-name = fully.qualified.module:PluginClass
+        # where plugin-name must be a unique name for this entrypoint.
+        #
+        # See also plugincode.post_scan module for details and doc.
+        'scancode_output_filter': [
+            'only-findings = scancode.plugin_only_findings:OnlyFindings',
+            'ignore-copyrights = scancode.plugin_ignore_copyrights:IgnoreCopyrights',
+        ],
+
+        # scancode_output is the entry point for output plugins that write a scan
+        # output in a given format at the end of a scan.
+        #
+        # Each entry hast this form:
+        #   plugin-name = fully.qualified.module:PluginClass
+        # where plugin-name must be a unique name for this entrypoint.
+        #
+        # See also plugincode._output module for details and doc.
+        'scancode_output': [
+            'html = formattedcode.output_html:HtmlOutput',
+            'html-app = formattedcode.output_html:HtmlAppOutput',
+            'json = formattedcode.output_json:JsonCompactOutput',
+            'json-pp = formattedcode.output_json:JsonPrettyOutput',
+            'spdx-tv = formattedcode.output_spdx:SpdxTvOutput',
+            'spdx-rdf = formattedcode.output_spdx:SpdxRdfOutput',
+            'csv = formattedcode.output_csv:CsvOutput',
+            'jsonlines = formattedcode.output_jsonlines:JsonLinesOutput',
+            'template = formattedcode.output_html:CustomTemplateOutput',
         ],
     },
 )

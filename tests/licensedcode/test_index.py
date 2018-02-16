@@ -39,7 +39,6 @@ from licensedcode.match import get_texts
 from licensedcode.query import Query
 from licensedcode import match_seq
 
-
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -168,7 +167,8 @@ class TestIndexing(IndexTesting):
         idx = index.LicenseIndex()
         rules = []
         for key in keys:
-            rules.append(models.Rule(text_file=os.path.join(base, key)))
+            rules.append(models.Rule(
+                text_file=os.path.join(base, key), licenses=['gpl-2.0']))
 
         idx._add_rules(rules)
 
@@ -256,8 +256,8 @@ class TestIndexing(IndexTesting):
         try:
             index.LicenseIndex(models.load_rules(rule_dir))
             self.fail('Exception on dupes not raised')
-        except AssertionError, e:
-            assert u'Duplicate rules' in e.message
+        except AssertionError as e:
+            assert u'Duplicate rules' in str(e)
 
 
 class TestMatchNoTemplates(IndexTesting):
@@ -476,14 +476,6 @@ No part of match        '''
             NEGLIGENCE OR OTHERWISE ARISING IN ANY WAY OUT OF THE USE OF THIS
             SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
         """.split()
-#         q = Query(query_string=querys, idx=idx)
-
-#         print('######################')
-#         print('######################')
-#         print('q=', querys.lower().replace('*', ' ').replace('/', ' '). split())
-#         print('q2=', [None if t is None else idx.tokens_by_tid[t] for t in q.tokens_with_unknowns()])
-#         print('######################')
-
 
         qtext, itext = get_texts(match, query_string=querys, idx=idx)
         assert exp_qtext == qtext.split()

@@ -45,13 +45,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import absolute_import
+from __future__ import print_function
 
 import os.path
 import ctypes
-import sys
 
 from commoncode import system
 from commoncode import command
+
+# Python 2 and 3 support
+try:
+    from os import fsencode
+except ImportError:
+    from backports.os import fsencode
 
 """
 magic2 is minimal and specialized wrapper around a vendored libmagic file
@@ -59,10 +66,8 @@ identification library. This is NOT thread-safe. It is based on python-magic
 by Adam Hup and adapted to the specific needs of ScanCode.
 """
 
-
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
-
 
 # path to vendored magic DB, possibly OS-specific
 basemag = os.path.join(data_dir, 'magic')
@@ -75,7 +80,6 @@ magic_db = os.path.join(magdir, 'magic.mgc')
 #
 detectors = {}
 
-
 # libmagic flags
 MAGIC_NONE = 0
 MAGIC_MIME = 16
@@ -83,7 +87,6 @@ MAGIC_MIME_ENCODING = 1024
 MAGIC_NO_CHECK_ELF = 65536
 MAGIC_NO_CHECK_TEXT = 131072
 MAGIC_NO_CHECK_CDF = 262144
-
 
 DETECT_TYPE = MAGIC_NONE
 DETECT_MIME = MAGIC_NONE | MAGIC_MIME
@@ -143,6 +146,7 @@ class MagicException(Exception):
 
 
 class Detector(object):
+
     def __init__(self, flags, magic_file=magic_db):
         """
         Create a new libmagic detector.
@@ -193,18 +197,18 @@ def load_lib():
     """
     Return the loaded libmagic shared library object from vendored paths.
     """
+    # FIXME: use command.load_lib instead
     root_dir = command.get_base_dirs(bin_dir)[0]
     _bin_dir, lib_dir = command.get_bin_lib_dirs(root_dir)
     magic_so = os.path.join(lib_dir, 'libmagic' + system.lib_ext)
 
     # add lib path to the front of the PATH env var
-    new_path = os.pathsep.join([lib_dir, os.environ['PATH']])
-    os.environ['PATH'] = new_path
+    command.update_path_environment(lib_dir)
 
     if os.path.exists(magic_so):
         if not isinstance(magic_so, bytes):
             # ensure that the path is not Unicode...
-            magic_so = magic_so.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
+            magic_so = fsencode(magic_so)
         lib = ctypes.CDLL(magic_so)
         if lib and lib._name:
             return lib
@@ -215,7 +219,7 @@ def load_lib():
 libmagic = load_lib()
 
 
-def check_error(result, func, args):  # @UnusedVariable
+def check_error(result, func, args):  # NOQA
     """
     ctypes error handler/checker:  Check for errors and raise an exception or
     return the result otherwise.

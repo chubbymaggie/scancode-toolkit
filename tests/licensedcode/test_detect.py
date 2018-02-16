@@ -45,10 +45,10 @@ from license_test_utils import print_matched_texts
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
-
 """
 Test the core license detection mechanics.
 """
+
 
 class TestIndexMatch(FileBasedTesting):
     test_data_dir = TEST_DATA_DIR
@@ -753,7 +753,7 @@ class TestIndexMatchWithTemplate(FileBasedTesting):
         assert expected_itext == itext.split()
 
         assert 84 == match.coverage()
-        assert 70 == match.score()
+        assert 84 == match.score()
         assert Span(0, 6) | Span(13, 26) == match.qspan
         assert Span(0, 6) | Span(11, 24) == match.ispan
 
@@ -845,7 +845,7 @@ class TestIndexMatchWithTemplate(FileBasedTesting):
         assert expected_itokens == itext.split()
 
         assert 97.55 == match.coverage()
-        assert 92.64 == match.score()
+        assert 97.55 == match.score()
         expected = Span(2, 98) | Span(100, 125) | Span(127, 131) | Span(133, 139) | Span(149, 178) | Span(180, 253)
         assert expected == match.qspan
         assert  Span(1, 135) | Span(141, 244) == match.ispan
@@ -999,10 +999,34 @@ class TestMatchAccuracyWithFullIndex(FileBasedTesting):
         expected = [
               # detected, match.lines(), match.qspan,
             (u'gpl-2.0-plus', (12, 25), Span(48, 159)),
-            (u'fsf-mit', (231, 238), Span(963, 1027)),
-            (u'free-unknown', (306, 307), Span(1313, 1336))
+            (u'fsf-mit', (231, 238), Span(833, 897)),
+            (u'free-unknown', (306, 307), Span(1070, 1093))
         ]
         self.check_position('positions/automake.pl', expected)
+
+    def test_score_is_not_100_for_exact_match_with_extra_words(self):
+        idx = cache.get_index()
+        test_loc = self.get_test_loc('detect/score/test.txt')
+        matches = idx.match(location=test_loc)
+        assert 1 == len(matches)
+        match = matches[0]
+        assert 99 < match.score() < 100
+
+    def test_match_texts_with_short_lgpl_and_gpl_notices(self):
+        idx = cache.get_index()
+        test_loc = self.get_test_loc('detect/short_l_and_gpls')
+        matches = idx.match(location=test_loc)
+        assert 6 == len(matches)
+        results = [m.matched_text(whole_lines=False) for m in matches]
+        expected = [
+            'GNU General Public License (GPL',
+            'GNU Lesser General Public License (LGPL',
+            'GNU General Public License (GPL',
+            'GNU Lesser General Public (LGPL',
+            'GNU Lesser General Public (LGPL',
+            'GNU Lesser General Public (LGPL'
+            ]
+        assert expected == results
 
 
 class TestMatchBinariesWithFullIndex(FileBasedTesting):

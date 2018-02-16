@@ -1,11 +1,88 @@
 Changelog
 =========
 
-(NEXT)
+2.2.1 (2017-10-05)
+------------------
+This is a minor release with several bug fixes, one new feature
+and one (minor) API change.
+
+* API change:
+ * Licenses data now contains a new reference_url attribute instead of a
+   dejacode_url attribute. This defaults to the public DejaCode URL and
+   can be configured with the new --license-url-template command line
+   option.
+
+* New feature:
+ * There is a new "--format jsonlines" output format option.
+   In this format, each line in the output is a valid JSON document. The
+   first line contains a "header" object with header-level data such as
+   notice, version, etc. Each line after the first contains the scan
+   results for a single file formatted with the same structure as a
+   whole scan results JSON documents but without any header-level
+   attributes. See also http://jsonlines.org/
+
+* Other changes:
+ * Several new and improved license detection rules have been added.
+   The logic of detection has been refined to handle some rare corner
+   cases. The underscore character "_" is treated as part of a license
+   word and the handling of negative and false_positive license rules
+   has been simplified.
+
+ * Several issues with dealing with codebase with non-ASCII,
+   non-UTF-decodable file paths and other filesystem encodings-related
+   bug have been fixed.
+
+ * Several copyright detection bugs have been fixed.
+ * PHP Composer and RPM packages are now detected with --package
+ * Several other package types are now detected with --package even
+   though only a few attribute may be returned for now until full parser
+   are added.
+ * Several parsing NPM packages bugs have been fixed. 
+ * There are some minor performance improvements when scanning some
+   large file for licenses.
+
+
+2.1.0 (2017-09-22)
 ------------------
 
- * Ensure that authors are reported even if there is no copyright #669
- * 
+This is a minor release with several new and improved features and bug
+fixes but no significant API changes.
+
+ * New plugin architecture by @yashdsaraf
+
+  * we can now have pre-scan, post-scan and output format plugins
+  * there is a new CSV output format and some example, experimental plugins
+  * the CLI UI has changed to better support these plugins
+
+ * New and improved licenses and license detection rules including
+   support for EPL-2.0 and OpenJDK-related licensing and synchronization
+   with the latest SPDX license list
+
+ * Multiple bug fixes such as:
+
+   * Ensure that authors are reported even if there is no copyright #669
+   * Fix Maven package POM parsing infinite loop #721
+   * Improve handling of weird non-unicode byte paths #688 and #706
+   * Improve PDF parsing to avoid some crash #723
+
+Credits: Many thanks to everyone that contributed to this release with code and bug reports
+(and this list is likely missing some)
+
+* @abuhman
+* @chinyeungli
+* @jimjag
+* @JonoYang
+* @jpopelka
+* @majurg
+* @mjherzog
+* @pgier
+* @pkajaba
+* @pombredanne
+* @scottctr
+* @sschuberth
+* @yahalom5776
+* @yashdsaraf
+
 
 2.0.1 (2017-07-03)
 ------------------
@@ -79,7 +156,7 @@ Changelog
 
 
  * Copyright: Improved copyright detection: several false positive are
-   no longer returned and copyright s are more accurate
+   no longer returned and copyrights are more accurate
 
 
  * Archive: support for shallow extraction and support for new archive
@@ -117,7 +194,7 @@ Changelog
  Thank you to all contributors to this release and the 200+ stars
  and 60+ forks on GitHub!
 
- * Credits in alphabetic order:
+ * Credits in alphabetical order:
 
   Alexander Lisianoi
   Avi Aryan

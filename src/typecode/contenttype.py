@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2018 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -22,7 +22,8 @@
 #  ScanCode is a free software code scanning tool from nexB Inc. and others.
 #  Visit https://github.com/nexB/scancode-toolkit/ for support and download.
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import
+from __future__ import print_function
 
 import contextlib
 import os
@@ -44,19 +45,20 @@ from pdfminer.pdftypes import PDFException
 from commoncode import fileutils
 from commoncode import filetype
 
+from extractcode import archive
+
 from typecode import magic2
+from typecode import entropy
 
 """
 Utilities to detect and report the type of a file or path based on its name,
 extension and mostly its content.
 """
 
-
 LOG = logging.getLogger(__name__)
 
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
-
 
 # Python mimetypes path setup using Apache mimetypes DB
 os.environ['XDG_DATA_DIRS'] = os.path.join(data_dir, 'apache')
@@ -66,16 +68,13 @@ APACHE_MIME_TYPES = os.path.join(data_dir, 'apache', 'mime.types')
 # Ensure that all dates are UTC, especially for fine free file.
 os.environ['TZ'] = 'UTC'
 
-
 PLAIN_TEXT_EXTENSIONS = ('.rst', '.rest', '.txt', '.md',
                         # This one is actually not handled by Pygments. There
                         # are probably more.
                          '.log')
 
-
 C_EXTENSIONS = set(['.c', '.cc', '.cp', '.cpp', '.cxx', '.c++', '.h', '.hh',
                     '.s', '.asm', '.hpp', '.hxx', '.h++', '.i', '.ii', '.m'])
-
 
 ELF_EXE = 'executable'
 ELF_SHARED = 'shared object'
@@ -83,13 +82,11 @@ ELF_RELOC = 'relocatable'
 ELF_UNKNOWN = 'unknown'
 elf_types = (ELF_EXE, ELF_SHARED, ELF_RELOC,)
 
-
 # TODO:
 # http://svn.zope.org/z3c.mimetype/trunk/?pathrev=103648
 # http://svn.zope.org/z3c.sharedmimeinfo/trunk/TODO.txt?revision=103668&view=markup
 # https://pypi.python.org/pypi/z3c.sharedmimeinfo/0.1.0
 # https://github.com/plone/Products.MimetypesRegistry/
-
 
 # Global registry of Type objects, keyed by location
 # TODO: can this be a memroy hog for very large scans?
@@ -108,8 +105,8 @@ def get_type(location):
         _registry[abs_loc] = t
         return t
 
-
 # TODO: simplify code using a cached property decorator
+
 
 class Type(object):
     """
@@ -140,6 +137,8 @@ class Type(object):
         '_is_pdf_with_text',
         '_is_text',
         '_is_binary',
+        '_is_data',
+        '_is_archive',
         '_contains_text',
     )
 
@@ -174,6 +173,8 @@ class Type(object):
         self._is_pdf_with_text = None
         self._is_text = None
         self._is_binary = None
+        self._is_data = None
+        self._is_archive = None
         self._contains_text = None
 
     def __repr__(self):
@@ -255,7 +256,7 @@ class Type(object):
                     self._filetype_pygments = ''
         return self._filetype_pygments
 
-    # FIXME: we way we use tri boolean is a tad ugly
+    # FIXME: we way we use tri booleans is a tad ugly
 
     @property
     def is_binary(self):
@@ -282,22 +283,21 @@ class Type(object):
         """
         Return True if the file is some kind of archive or compressed file.
         """
-        # FIXME: we should use extracode archive detection
-        # TODO: also treat file systems as archives
+        if self._is_archive is not None:
+            return self._is_archive
+        self._is_archive = False
+
         ft = self.filetype_file.lower()
-        if (not self.is_text
-        and (self.is_compressed
-          or 'archive' in ft
-          or self.is_package
-          or self.is_filesystem
-          or (self.is_office_doc and self.location.endswith('x'))
-          # FIXME: is this really correct???
-          or '(zip)' in ft
-          )
-        ):
-            return True
-        else:
-            return False
+        can_extract = bool(archive.can_extract(self.location))
+        if (not self.is_text and (
+            self.is_compressed or 'archive' in ft or can_extract
+            or self.is_package or self.is_filesystem
+            or (self.is_office_doc and self.location.endswith('x'))
+            # FIXME: is this really correct???
+            or '(zip)' in ft)):
+                self._is_archive = True
+
+        return self._is_archive
 
     @property
     def is_office_doc(self):
@@ -312,6 +312,7 @@ class Type(object):
         """
         Return True if the file is some kind of packaged archive.
         """
+        # FIXME: this should beased on proper package recognition, not this simplistic check
         ft = self.filetype_file.lower()
         loc = self.location.lower()
         if ('debian binary package' in ft
@@ -319,7 +320,7 @@ class Type(object):
          or (ft == 'posix tar archive' and loc.endswith('.gem'))
          or (ft.startswith(('zip archive',)) and loc.endswith(('.jar', '.war', '.ear', '.egg', '.whl',)))
          or (ft.startswith(('java archive',)) and loc.endswith(('.jar', '.war', '.ear', '.zip',)))
-         ):
+        ):
             return True
         else:
             return False
@@ -437,6 +438,33 @@ class Type(object):
         return self._contains_text
 
     @property
+    def is_data(self):
+        """
+        Return True if the file is some kind of data file.
+        """
+        if self._is_data is None:
+            if not self.is_file:
+                self._is_data = False
+
+            large_file = 5 * 1000 * 1000
+            large_text_file = 2 * 1000 * 1000
+
+            ft = self.filetype_file.lower()
+
+            size = self.size
+            max_entropy = 1.3
+
+            if (('data' in ft and size > large_file)
+             or (self.is_text and size > large_text_file)
+             or (self.is_text and size > large_text_file)
+             or (entropy.entropy(self.location, length=5000) < max_entropy)
+            ):
+                self._is_data = True
+            else:
+                self._is_data = False
+        return self._is_data
+
+    @property
     def is_script(self):
         """
         Return True if the file is script-like.
@@ -459,9 +487,11 @@ class Type(object):
             return False
 
         ft = self.filetype_file.lower()
-        pt = self.filetype_pygment
+        pt = self.filetype_pygment.lower()
 
-        if not 'xml' in ft and (pt or self.is_script is True):
+        if 'xml' not in ft and \
+           ('xml' not in pt or self.location.endswith('pom.xml')) and \
+           (pt or self.is_script is True):
             return True
         else:
             return False
@@ -497,9 +527,10 @@ class Type(object):
     def is_elf(self):
         ft = self.filetype_file.lower()
         if (ft.startswith('elf')
-            and (ELF_EXE in ft
-            or ELF_SHARED in ft
-            or ELF_RELOC in ft)):
+         and (ELF_EXE in ft
+          or ELF_SHARED in ft
+          or ELF_RELOC in ft)
+        ):
             return True
         else:
             return False
@@ -533,9 +564,9 @@ class Type(object):
         if self.is_file is True:
             name = fileutils.file_name(self.location)
             if (fnmatch.fnmatch(name, '*.java')
-                or fnmatch.fnmatch(name, '*.aj')
-                or fnmatch.fnmatch(name, '*.ajt')
-                ):
+             or fnmatch.fnmatch(name, '*.aj')
+             or fnmatch.fnmatch(name, '*.ajt')
+            ):
                 return True
             else:
                 return False

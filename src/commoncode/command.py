@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2018 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -27,20 +27,37 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import ctypes
-import os
+import os as _os_module
+from os.path import abspath
+from os.path import exists
+from os.path import dirname
+from os.path import join
+
 import logging
 import signal
 import subprocess
-import sys
 
-from commoncode import fileutils
+from commoncode.fileutils import chmod
+from commoncode.fileutils import fsencode
+from commoncode.fileutils import fsdecode
+from commoncode.fileutils import get_temp_dir
+from commoncode.fileutils import RX
 from commoncode import text
 from commoncode import system
 from commoncode.system import current_os_arch
 from commoncode.system import current_os_noarch
 from commoncode.system import noarch
 from commoncode.system import on_windows
+from commoncode.system import on_linux
 
+# Python 2 and 3 support
+try:
+    # Python 2
+    unicode
+    str = unicode  # NOQA
+except NameError:
+    # Python 3
+    unicode = str  # NOQA
 
 """
 Minimal wrapper for executing external commands in sub-processes. The approach
@@ -64,7 +81,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 # current directory is the root dir of this library
-curr_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+curr_dir = dirname(dirname(abspath(__file__)))
 
 
 def execute(cmd, args, root_dir=None, cwd=None, env=None, to_files=False):
@@ -91,9 +108,9 @@ def execute(cmd, args, root_dir=None, cwd=None, env=None, to_files=False):
     cwd = cwd or curr_dir
 
     # temp files for stderr and stdout
-    tmp_dir = fileutils.get_temp_dir(base_dir='cmd')
-    sop = os.path.join(tmp_dir, 'stdout')
-    sep = os.path.join(tmp_dir, 'stderr')
+    tmp_dir = get_temp_dir(prefix='scancode-cmd-')
+    sop = join(tmp_dir, 'stdout')
+    sep = join(tmp_dir, 'stderr')
 
     # shell==True is DANGEROUS but we are not running arbitrary commands
     # though we can execute command that just happen to be in the path
@@ -127,7 +144,7 @@ def os_arch_dir(root_dir, _os_arch=current_os_arch):
     Return a sub-directory of `root_dir` tailored for the current OS and
     current processor architecture.
     """
-    return os.path.join(root_dir, _os_arch)
+    return join(root_dir, _os_arch)
 
 
 def os_noarch_dir(root_dir, _os_noarch=current_os_noarch):
@@ -135,7 +152,7 @@ def os_noarch_dir(root_dir, _os_noarch=current_os_noarch):
     Return a sub-directory of `root_dir` tailored for the current OS and NOT
     specific to a processor architecture.
     """
-    return os.path.join(root_dir, _os_noarch)
+    return join(root_dir, _os_noarch)
 
 
 def noarch_dir(root_dir, _noarch=noarch):
@@ -143,7 +160,7 @@ def noarch_dir(root_dir, _noarch=noarch):
     Return a sub-directory of `root_dir` that is NOT specific to an OS or
     processor architecture.
     """
-    return os.path.join(root_dir, _noarch)
+    return join(root_dir, _noarch)
 
 
 def get_base_dirs(root_dir,
@@ -168,14 +185,14 @@ def get_base_dirs(root_dir,
     binary  of any given binary. This function resolves to an actual OS/arch
     location in this context.
     """
-    if not root_dir or not os.path.exists(root_dir):
+    if not root_dir or not exists(root_dir):
         return []
 
     dirs = []
 
     def find_loc(fun, arg):
         loc = fun(root_dir, arg)
-        if os.path.exists(loc):
+        if exists(loc):
             dirs.append(loc)
 
     if _os_arch:
@@ -200,17 +217,17 @@ def get_bin_lib_dirs(base_dir):
     if not base_dir:
         return None, None
 
-    bin_dir = os.path.join(base_dir, 'bin')
+    bin_dir = join(base_dir, 'bin')
 
-    if os.path.exists(bin_dir):
-        fileutils.chmod(bin_dir, fileutils.RX, recurse=True)
+    if exists(bin_dir):
+        chmod(bin_dir, RX, recurse=True)
     else:
         bin_dir = None
 
-    lib_dir = os.path.join(base_dir, 'lib')
+    lib_dir = join(base_dir, 'lib')
 
-    if os.path.exists(lib_dir):
-        fileutils.chmod(bin_dir, fileutils.RX, recurse=True)
+    if exists(lib_dir):
+        chmod(bin_dir, RX, recurse=True)
     else:
         # default to bin for lib if it exists
         lib_dir = bin_dir or None
@@ -274,9 +291,9 @@ def get_locations(cmd, root_dir,
 
         for base_dir in get_base_dirs(root_dir, _os_arch, _os_noarch, _noarch):
             bin_dir, lib_dir = get_bin_lib_dirs(base_dir)
-            cmd_loc = os.path.join(bin_dir, cmd)
-            if os.path.exists(cmd_loc):
-                fileutils.chmod(cmd_loc, fileutils.RX, recurse=False)
+            cmd_loc = join(bin_dir, cmd)
+            if exists(cmd_loc):
+                chmod(cmd_loc, RX, recurse=False)
                 return cmd_loc, bin_dir, lib_dir
     else:
         # we just care for getting the dirs and grab the first one
@@ -309,7 +326,7 @@ def close(proc):
     try:
         # Ensure process death otherwise proc.wait may hang in some cases
         # NB: this will run only on POSIX OSes supporting signals
-        os.kill(proc.pid, signal.SIGKILL)  # @UndefinedVariable
+        os.kill(proc.pid, signal.SIGKILL)  # NOQA
     except:
         pass
 
@@ -324,17 +341,64 @@ def load_lib(libname, root_dir):
     """
     os_dir = get_base_dirs(root_dir)[0]
     _bin_dir, lib_dir = get_bin_lib_dirs(os_dir)
-    so = os.path.join(lib_dir, libname + system.lib_ext)
+    so = join(lib_dir, libname + system.lib_ext)
 
     # add lib path to the front of the PATH env var
-    new_path = os.pathsep.join([lib_dir, os.environ['PATH']])
-    os.environ['PATH'] = new_path
+    update_path_environment(lib_dir)
 
-    if os.path.exists(so):
+    if exists(so):
         if not isinstance(so, bytes):
             # ensure that the path is not Unicode...
-            so = so.encode(sys.getfilesystemencoding() or sys.getdefaultencoding())
+            so = fsencode(so)
         lib = ctypes.CDLL(so)
         if lib and lib._name:
             return lib
     raise ImportError('Failed to load %(libname)s from %(so)r' % locals())
+
+
+def update_path_environment(new_path, _os_module=_os_module):
+    """
+    Update the PATH environment variable by adding `new_path` to the front
+    of PATH if `new_path` is not alreday in the PATH.
+    """
+    # note: _os_module is used to facilitate mock testing using an
+    # object with a sep string attribute and an environ mapping
+    # attribute
+
+    if not new_path:
+        return
+
+    new_path = new_path.strip()
+    if not new_path:
+        return
+
+    path_env = _os_module.environ.get(b'PATH')
+    if not path_env:
+        # this is quite unlikely to ever happen, but here for safety
+        path_env = ''
+
+    # ensure we use unicode or bytes depending on OSes
+    if on_linux:
+        new_path = fsencode(new_path)
+        path_env = fsencode(path_env)
+        sep = _os_module.pathsep
+    else:
+        new_path = fsdecode(new_path)
+        path_env = fsdecode(path_env)
+        sep = unicode(_os_module.pathsep)
+
+    path_segments = path_env.split(sep)
+
+    # add lib path to the front of the PATH env var
+    # this will use bytes on Linux and unicode elsewhere
+    if new_path not in path_segments:
+        if not path_env:
+            new_path_env = new_path
+        else:
+            new_path_env = sep.join([new_path, path_env])
+
+        if not on_linux:
+            # recode to bytes using FS encoding
+            new_path_env = fsencode(new_path_env)
+        # ... and set the variable back as bytes
+        _os_module.environ[b'PATH'] = new_path_env

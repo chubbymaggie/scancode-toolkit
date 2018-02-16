@@ -39,6 +39,7 @@ import itertools
 
 def frequent_global_words():
     return u'''
+_
 the
 of
 and
@@ -8401,6 +8402,7 @@ emerged
 deviantart
 qa
 goddess
+alternatively
 backs
 observers
 magnets
@@ -9098,6 +9100,8 @@ semantics
 huh
 scarface
 accountant
+account
+accounts
 beige
 rolex
 propaganda
@@ -10007,6 +10011,36 @@ lisp
 clisp
 clos
 SAVEINITMEM
+datatables
+datatable
+TrademarkedName
+ntp
+ftdi
+include
+arch
+bits
+crt 
+ldso
+dlstart
+arch
+Bobby
+Bingham
+John
+Spencer
+Nicholas
+Kain
+Rich
+Felker
+Richard 
+Pennington
+Stefan
+Kristiansson
+Szabolcs
+Nagy
+musl
+paradigm
+Associates
+Inc
 '''
 
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2018 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -23,9 +23,9 @@
 #  Visit https://github.com/nexB/scancode-toolkit/ for support and download.
 
 from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import print_function
 from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import codecs
 from collections import Counter
@@ -34,23 +34,27 @@ from collections import namedtuple
 from collections import OrderedDict
 from itertools import chain
 from operator import itemgetter
+from os.path import abspath
+from os.path import dirname
 from os.path import exists
 from os.path import join
 
+from commoncode.fileutils import copyfile
 from commoncode.fileutils import file_base_name
 from commoncode.fileutils import file_name
-from commoncode.fileutils import file_iter
+from commoncode.fileutils import resource_iter
+from commoncode import saneyaml
 from textcode.analysis import text_lines
 
 from licensedcode import MIN_MATCH_LENGTH
 from licensedcode import MIN_MATCH_HIGH_LENGTH
-from licensedcode import licenses_data_dir
-from licensedcode import rules_data_dir
-from licensedcode import saneyaml
 from licensedcode.tokenize import rule_tokenizer
 from licensedcode.tokenize import query_tokenizer
-from commoncode import fileutils
 
+# these are globals but always side-by-side with the code so not moving
+data_dir = join(abspath(dirname(__file__)), 'data')
+licenses_data_dir = join(data_dir, 'licenses')
+rules_data_dir = join(data_dir, 'rules')
 
 """
 Reference License and license Rule structures persisted as a combo of a YAML
@@ -120,6 +124,7 @@ class License(object):
         # if this is a license exception, the license key this exception applies to
         self.is_exception = False
 
+        # FIXME: this is WAY too complicated and likely not needed
         # license key for the next version of this license if any
         self.next_version = ''
         # True if this license allows later versions to be used
@@ -155,12 +160,12 @@ class License(object):
         self.data_file = join(self.src_dir, self.key + '.yml')
         self.text_file = join(self.src_dir, self.key + '.LICENSE')
 
-    def relocate(self, src_dir, new_key=None):
+    def relocate(self, target_dir, new_key=None):
         """
         Return a copy of this license object relocated to a new `src_dir`.
         The data and license text files are persisted in the new `src_dir`.
         """
-        if not src_dir or src_dir == self.src_dir:
+        if not target_dir or target_dir == self.src_dir:
             raise ValueError(
                 'Cannot relocate a License to empty directory or same directory.')
 
@@ -169,7 +174,7 @@ class License(object):
         else:
             key = self.key
 
-        newl = License(key, src_dir)
+        newl = License(key, target_dir)
 
         # copy attributes
         excluded_attrs = ('key', 'src_dir', 'data_file', 'text_file',)
@@ -179,7 +184,7 @@ class License(object):
 
         # save it all to files
         if self.text:
-            fileutils.copyfile(self.text_file, newl.text_file)
+            copyfile(self.text_file, newl.text_file)
         newl.dump()
         return newl
 
@@ -328,13 +333,14 @@ class License(object):
             warn = warnings[key].append
             info = infos[key].append
 
-            # names
             if not lic.short_name:
                 warn('No short name')
             if not lic.name:
                 warn('No name')
             if not lic.category:
                 warn('No category')
+            if not lic.owner:
+                warn('No owner')
 
             if lic.next_version and lic.next_version not in licenses:
                 err('License next version is unknown')
@@ -387,7 +393,6 @@ class License(object):
                 # for global dedupe
                 by_text[license_qtokens].append(key + ': TEXT')
 
-
             # SPDX consistency
             if lic.spdx_license_key:
                 by_spdx_key[lic.spdx_license_key].append(key)
@@ -429,7 +434,7 @@ def load_licenses(licenses_data_dir=licenses_data_dir , with_deprecated=False):
     Return a mapping of key -> license objects, loaded from license files.
     """
     licenses = {}
-    for data_file in file_iter(licenses_data_dir):
+    for data_file in resource_iter(licenses_data_dir, with_dirs=False):
         if not data_file.endswith('.yml'):
             continue
         key = file_base_name(data_file)
@@ -499,7 +504,7 @@ def build_rules_from_licenses(licenses):
                        minimum_coverage=minimum_coverage, is_license=True)
 
 
-def load_rules(rules_data_dir=rules_data_dir):
+def load_rules(rules_data_dir=rules_data_dir, load_notes=False):
     """
     Return an iterable of rules loaded from rule files.
     """
@@ -509,11 +514,12 @@ def load_rules(rules_data_dir=rules_data_dir):
     processed_files = set()
     lower_case_files = set()
     case_problems = set()
-    for data_file in file_iter(rules_data_dir):
+    for data_file in resource_iter(rules_data_dir, with_dirs=False):
         if data_file.endswith('.yml'):
             base_name = file_base_name(data_file)
             rule_file = join(rules_data_dir, base_name + '.RULE')
-            yield Rule(data_file=data_file, text_file=rule_file)
+            yield Rule(data_file=data_file, text_file=rule_file,
+                       load_notes=load_notes)
 
             # accumulate sets to ensures we do not have illegal names or extra
             # orphaned files
@@ -538,11 +544,11 @@ def load_rules(rules_data_dir=rules_data_dir):
     if unknown_files or case_problems:
         if unknown_files:
             files = '\n'.join(sorted(unknown_files))
-            msg = 'Orphaned files in rule directory: %(rule_dir)r\n%(files)s'
+            msg = 'Orphaned files in rule directory: %(rules_data_dir)r\n%(files)s'
 
         if case_problems:
             files = '\n'.join(sorted(case_problems))
-            msg += '\nRule files with non-unique name ignoring casein rule directory: %(rule_dir)r\n%(files)s'
+            msg += '\nRule files with non-unique name ignoring casein rule directory: %(rules_data_dir)r\n%(files)s'
 
         raise Exception(msg % locals())
 
@@ -559,7 +565,7 @@ class Rule(object):
     __slots__ = (
         'rid', 'identifier',
          'licenses', 'license_choice', 'license', 'licensing_identifier',
-         'false_positive',
+         'false_positive', 'negative',
          'notes',
          'data_file', 'text_file', '_text',
          'length', 'low_length', 'high_length', '_thresholds',
@@ -570,7 +576,7 @@ class Rule(object):
 
     def __init__(self, data_file=None, text_file=None, licenses=None,
                  license_choice=False, notes=None, minimum_coverage=0,
-                 is_license=False, _text=None):
+                 is_license=False, _text=None, load_notes=False):
 
         ###########
         # FIXME: !!! TWO RULES MAY DIFFER BECAUSE THEY ARE UPDATED BY INDEXING
@@ -580,6 +586,7 @@ class Rule(object):
         self.rid = None
 
         if not text_file:
+            # for tests only
             assert _text
             self.identifier = '_tst_' + str(len(_text))
         else:
@@ -587,6 +594,7 @@ class Rule(object):
 
         # list of valid license keys
         self.licenses = licenses or []
+
         # True if the rule is for a choice of all licenses. default to False
         self.license_choice = license_choice
 
@@ -598,6 +606,8 @@ class Rule(object):
         # should be unified with the relevance: a false positive match is a a match
         # with a relevance of zero
         self.false_positive = False
+
+        self.negative = False
 
         # is this rule text only to be matched with a minimum coverage?
         self.minimum_coverage = minimum_coverage
@@ -621,7 +631,7 @@ class Rule(object):
         self.data_file = data_file
         if data_file:
             try:
-                self.load()
+                self.load(load_notes=load_notes)
             except Exception as e:
                 message = 'While loading: %(data_file)r' % locals() + e.message
                 print(message)
@@ -686,7 +696,7 @@ class Rule(object):
         elif self.text_file and exists(self.text_file):
             # IMPORTANT: use the same process as query text loading for symmetry
             lines = text_lines(self.text_file, demarkup=False)
-            return ' '.join(lines)
+            return ''.join(lines)
         else:
             raise Exception('Inconsistent rule text for:', self.identifier)
 
@@ -702,8 +712,10 @@ class Rule(object):
         keys = self.licenses
         choice = self.license_choice
         fp = self.false_positive
+        neg = self.negative
         minimum_coverage = self.minimum_coverage
-        return 'Rule(%(idf)r, lics=%(keys)r, fp=%(fp)r, minimum_coverage=%(minimum_coverage)r, %(text)r)' % locals()
+        return ('Rule(%(idf)r, lics=%(keys)r, fp=%(fp)r, neg=%(neg)r, '
+                'minimum_coverage=%(minimum_coverage)r, %(text)r)' % locals())
 
     def same_licensing(self, other):
         """
@@ -719,14 +731,6 @@ class Rule(object):
         # TODO: include license expressions
         return set(self.licensing_identifier).issuperset(other.licensing_identifier)
 
-    def negative(self):
-        """
-        Return True if this Rule does not point to real licenses and is
-        therefore a "negative" rule denoting that a match to this rule should be
-        ignored.
-        """
-        return not self.licenses and not self.false_positive
-
     def small(self):
         """
         Is this a small rule? It needs special handling for detection.
@@ -739,30 +743,37 @@ class Rule(object):
         Return a Thresholds tuple considering the occurrence of all tokens.
         """
         if not self._thresholds:
-            min_high = min([self.high_length, MIN_MATCH_HIGH_LENGTH])
-            min_len = MIN_MATCH_LENGTH
+            length = self.length
+            high_length = self.high_length
+            if length > 200:
+                min_high = high_length // 10
+                min_len = length // 10
+            else:
+                min_high = min([high_length, MIN_MATCH_HIGH_LENGTH])
+                min_len = MIN_MATCH_LENGTH
 
             # note: we cascade ifs from largest to smallest lengths
             # FIXME: this is not efficient
+
             if self.length < 30:
-                min_len = self.length // 2
+                min_len = length // 2
 
             if self.length < 10:
-                min_high = self.high_length
-                min_len = self.length
+                min_high = high_length
+                min_len = length
                 self.minimum_coverage = 80
 
             if self.length < 3:
-                min_high = self.high_length
-                min_len = self.length
+                min_high = high_length
+                min_len = length
                 self.minimum_coverage = 100
 
             if self.minimum_coverage == 100:
-                min_high = self.high_length
-                min_len = self.length
+                min_high = high_length
+                min_len = length
 
             self._thresholds = Thresholds(
-                self.high_length, self.low_length, self.length,
+                high_length, self.low_length, length,
                 self.small(), min_high, min_len
             )
         return self._thresholds
@@ -772,31 +783,40 @@ class Rule(object):
         Return a Thresholds tuple considering the occurrence of only unique tokens.
         """
         if not self._thresholds_unique:
-            highu = (int(self.high_unique // 2)) or self.high_unique
-            min_high = min([highu, MIN_MATCH_HIGH_LENGTH])
-            min_len = MIN_MATCH_LENGTH
+            length = self.length
+            high_unique = self.high_unique
+            length_unique = self.length_unique
+
+            if length > 200:
+                min_high = high_unique // 10
+                min_len = length // 10
+            else:
+                highu = (int(high_unique // 2)) or high_unique
+                min_high = min([highu, MIN_MATCH_HIGH_LENGTH])
+                min_len = MIN_MATCH_LENGTH
+
             # note: we cascade IFs from largest to smallest lengths
-            if self.length < 20:
-                min_high = self.high_unique
+            if length < 20:
+                min_high = high_unique
                 min_len = min_high
 
-            if self.length < 10:
-                min_high = self.high_unique
-                if self.length_unique < 2:
-                    min_len = self.length_unique
+            if length < 10:
+                min_high = high_unique
+                if length_unique < 2:
+                    min_len = length_unique
                 else:
-                    min_len = self.length_unique - 1
+                    min_len = length_unique - 1
 
-            if self.length < 5:
-                min_high = self.high_unique
-                min_len = self.length_unique
+            if length < 5:
+                min_high = high_unique
+                min_len = length_unique
 
             if self.minimum_coverage == 100:
-                min_high = self.high_unique
-                min_len = self.length_unique
+                min_high = high_unique
+                min_len = length_unique
 
             self._thresholds_unique = Thresholds(
-                self.high_unique, self.low_unique, self.length_unique,
+                high_unique, self.low_unique, length_unique,
                 self.small(), min_high, min_len)
         return self._thresholds_unique
 
@@ -814,12 +834,14 @@ class Rule(object):
             data['license'] = self.license
         if self.false_positive:
             data['false_positive'] = self.false_positive
+        if self.negative:
+            data['negative'] = self.negative
         if self.has_stored_relevance:
             data['relevance'] = self.relevance
         if self.minimum_coverage:
             data['minimum_coverage'] = self.minimum_coverage
         if self.notes:
-            data['notes'] = self.note
+            data['notes'] = self.notes
         return data
 
     def dump(self):
@@ -832,8 +854,9 @@ class Rule(object):
             as_yaml = saneyaml.dump(self.to_dict())
             with codecs.open(self.data_file, 'wb', encoding='utf-8') as df:
                 df.write(as_yaml)
+            text = self.text()
             with codecs.open(self.text_file, 'wb', encoding='utf-8') as tf:
-                tf.write(self.text())
+                tf.write(text)
 
     def load(self, load_notes=False):
         """
@@ -857,6 +880,7 @@ class Rule(object):
         self.license_choice = data.get('license_choice', False)
         self.license = data.get('license')
         self.false_positive = data.get('false_positive', False)
+        self.negative = data.get('negative', False)
         relevance = data.get('relevance')
         if relevance is not None:
             # Keep track if we have a stored relevance of not.
@@ -902,7 +926,7 @@ class Rule(object):
 
         # case for negative rules with no license (and are not an FP)
         # they do not have licenses and their matches are never returned
-        if self.negative():
+        if self.negative:
             self.relevance = 0
             return
 

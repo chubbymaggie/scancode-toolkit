@@ -23,7 +23,8 @@
 #  ScanCode is a free software code scanning tool from nexB Inc. and others.
 #  Visit https://github.com/nexB/scancode-toolkit/ for support and download.
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import print_function
 
 import os.path
 from unittest.case import expectedFailure
@@ -35,6 +36,7 @@ from cluecode_assert_utils import check_detection
 This test suite is based a rather large subset of Android ICS, providing a
 rather diversified sample of a typical Linux-based user space environment.
 """
+
 
 class TestCopyright(FileBasedTesting):
     test_data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -174,14 +176,6 @@ class TestCopyright(FileBasedTesting):
         check_detection(expected, test_file)
 
     def test_ics_apache_xml_src_main_java_org_apache_xpath_domapi_xpathstylesheetdom3exception_java(self):
-        test_file = self.get_test_loc('ics/apache-xml-src-main-java-org-apache-xpath-domapi/XPathStylesheetDOM3Exception.java')
-        expected = [
-            u'Copyright (c) 2002 World Wide Web Consortium, Massachusetts Institute of Technology, Institut National de Recherche en Informatique',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_apache_xml_src_main_java_org_apache_xpath_domapi_xpathstylesheetdom3exception_java_trail_name(self):
         test_file = self.get_test_loc('ics/apache-xml-src-main-java-org-apache-xpath-domapi/XPathStylesheetDOM3Exception.java')
         expected = [
             u'Copyright (c) 2002 World Wide Web Consortium, '
@@ -418,9 +412,12 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/bison-build-aux/config.rpath')
         expected = [
             u'Copyright 1996-2006 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_bison_build_aux_depcomp(self):
         test_file = self.get_test_loc('ics/bison-build-aux/depcomp')
@@ -568,8 +565,8 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/bison-doc/refcard.tex')
         expected = [
             u'Copyright (c) 1998, 2001 Free Software Foundation, Inc.',
-            u'Copyright \\copyright\\ \\year\\ Free Software Foundation, Inc.',
-            u'Copyright \\copyright\\ \\year\\ Free Software Foundation, Inc.',
+            u'Copyright year Free Software Foundation, Inc.',
+            u'Copyright year Free Software Foundation, Inc.',
         ]
         check_detection(expected, test_file)
 
@@ -934,9 +931,12 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/bison-lib/strverscmp.c')
         expected = [
             u'Copyright (c) 1997, 2000, 2002, 2004 Free Software Foundation, Inc.',
-            u'Jean-Francois Bignolles <bignolle@ecoledoc.ibp.fr>, 1997.'
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Jean-Francois Bignolles <bignolle@ecoledoc.ibp.fr>'
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_bison_lib_strverscmp_h(self):
         test_file = self.get_test_loc('ics/bison-lib/strverscmp.h')
@@ -1281,15 +1281,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_bison_src_getargs_c(self):
-        test_file = self.get_test_loc('ics/bison-src/getargs.c')
-        expected = [
-            u'Copyright (c) 1984, 1986, 1989, 1992, 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.',
-            u'(c) d Free Software Foundation, Inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_bison_src_getargs_c_lead_copy(self):
         test_file = self.get_test_loc('ics/bison-src/getargs.c')
         expected = [
@@ -1708,9 +1699,12 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/blktrace/strverscmp.c')
         expected = [
             u'Copyright (c) 1997, 2002, 2005 Free Software Foundation, Inc.',
-            u'Jean-Francois Bignolles <bignolle@ecoledoc.ibp.fr>, 1997.'
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Jean-Francois Bignolles <bignolle@ecoledoc.ibp.fr>'
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_blktrace_btreplay_btrecord_c(self):
         test_file = self.get_test_loc('ics/blktrace-btreplay/btrecord.c')
@@ -2055,17 +2049,13 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bluetooth_bluez_health_hdp_c(self):
         test_file = self.get_test_loc('ics/bluetooth-bluez-health/hdp.c')
         expected = [
-            u'Copyright (c) 2010 GSyC/LibreSoft, Universidad Rey Juan Carlos. Authors Santiago Carot Nemesio',
+            u'Copyright (c) 2010 GSyC/LibreSoft, Universidad Rey Juan Carlos.'
         ]
         check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_bluez_health_hdp_c_extra_author(self):
-        test_file = self.get_test_loc('ics/bluetooth-bluez-health/hdp.c')
         expected = [
-            u'Copyright (c) 2010 GSyC/LibreSoft, Universidad Rey Juan Carlos.',
+            u'Santiago Carot Nemesio',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_bluetooth_bluez_health_mcap_c(self):
         test_file = self.get_test_loc('ics/bluetooth-bluez-health/mcap.c')
@@ -2224,16 +2214,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_bluetooth_bluez_sbc_sbcdec_c(self):
-        test_file = self.get_test_loc('ics/bluetooth-bluez-sbc/sbcdec.c')
-        expected = [
-            u'Copyright (c) 2008-2010 Nokia Corporation',
-            u'Copyright (c) 2004-2010 Marcel Holtmann <marcel@holtmann.org>',
-            u'(c) 2004-2010 Marcel Holtmann',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_bluetooth_bluez_sbc_sbcdec_c_lead_copy(self):
         test_file = self.get_test_loc('ics/bluetooth-bluez-sbc/sbcdec.c')
         expected = [
@@ -2244,18 +2224,6 @@ class TestCopyright(FileBasedTesting):
         check_detection(expected, test_file)
 
     def test_ics_bluetooth_bluez_sbc_sbctester_c(self):
-        test_file = self.get_test_loc('ics/bluetooth-bluez-sbc/sbctester.c')
-        expected = [
-            u'Copyright (c) 2008-2010 Nokia Corporation',
-            u'Copyright (c) 2007-2010 Marcel Holtmann <marcel@holtmann.org>',
-            u'Copyright (c) 2007-2008 Frederic Dalleau <fdalleau@free.fr>',
-            u'(c) 2007-2010 Marcel Holtmann',
-            u'(c) 2007-2008 Frederic Dalleau',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_bluez_sbc_sbctester_c_lead_copy_lead_copy(self):
         test_file = self.get_test_loc('ics/bluetooth-bluez-sbc/sbctester.c')
         expected = [
             u'Copyright (c) 2008-2010 Nokia Corporation',
@@ -2590,14 +2558,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bluetooth_glib_gio_tests_buffered_input_stream_c(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gio-tests/buffered-input-stream.c')
         expected = [
-            u'Copyright (c) 2008 Red Hat, Inc. Authors',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_gio_tests_buffered_input_stream_c_extra_author(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-gio-tests/buffered-input-stream.c')
-        expected = [
             u'Copyright (c) 2008 Red Hat, Inc.',
         ]
         check_detection(expected, test_file)
@@ -2619,17 +2579,13 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bluetooth_glib_gio_tests_memory_input_stream_c(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gio-tests/memory-input-stream.c')
         expected = [
-            u'Copyright (c) 2007 Imendio AB Authors Tim Janik',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_gio_tests_memory_input_stream_c_extra_author(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-gio-tests/memory-input-stream.c')
-        expected = [
             u'Copyright (c) 2007 Imendio AB',
         ]
         check_detection(expected, test_file)
+        expected = [
+            u'Tim Janik',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_bluetooth_glib_gio_tests_simple_async_result_c(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gio-tests/simple-async-result.c')
@@ -2944,14 +2900,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bluetooth_glib_glib_gtestutils_c(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-glib/gtestutils.c')
         expected = [
-            u'Copyright (c) 2007 Imendio AB Authors Tim Janik, Sven Herzberg',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_glib_gtestutils_c_extra_author(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-glib/gtestutils.c')
-        expected = [
             u'Copyright (c) 2007 Imendio AB',
         ]
         check_detection(expected, test_file)
@@ -3074,20 +3022,11 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_bluetooth_glib_gmodule_gmodule_beos_c(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-gmodule/gmodule-beos.c')
-        expected = [
-            u'Copyright (c) 1998, 2000 Tim Janik',
-            u'Copyright (c) 1999 Richard',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_bluetooth_glib_gmodule_gmodule_beos_c_trail_name(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gmodule/gmodule-beos.c')
         expected = [
             u'Copyright (c) 1998, 2000 Tim Janik',
-            u'Copyright (C) 1999 Richard Offer and Shawn T. Amundson (amundson@gtk.org)',
+            u'Copyright (c) 1999 Richard Offer and Shawn T. Amundson (amundson@gtk.org)',
         ]
         check_detection(expected, test_file)
 
@@ -3167,28 +3106,11 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bluetooth_glib_gobject_tests_threadtests_c(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gobject-tests/threadtests.c')
         expected = [
-            u'Copyright (c) 2008 Imendio AB Authors Tim Janik',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_gobject_tests_threadtests_c_extra_author(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-gobject-tests/threadtests.c')
-        expected = [
             u'Copyright (c) 2008 Imendio AB',
         ]
         check_detection(expected, test_file)
 
     def test_ics_bluetooth_glib_gthread_gthread_rc_in(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-gthread/gthread.rc.in')
-        expected = [
-            u'Copyright (c) 1995-1997 Peter Mattis, Spencer Kimball',
-            u'Copyright (c) 1998 Sebastian Wilhelmi.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_gthread_gthread_rc_in_trail_name(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-gthread/gthread.rc.in')
         expected = [
             u'Copyright (c) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald.',
@@ -3220,11 +3142,10 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
     def test_ics_bluetooth_glib_po_po2tbl_sed_in(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-po/po2tbl.sed.in')
         expected = [
-            u'Copyright (c) 1995 Free Software Foundation, Inc. Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.',
+            u'Copyright (c) 1995 Free Software Foundation, Inc. Ulrich Drepper <drepper@gnu.ai.mit.edu>',
         ]
         check_detection(expected, test_file)
 
@@ -3279,15 +3200,6 @@ class TestCopyright(FileBasedTesting):
         check_detection(expected, test_file)
 
     def test_ics_bluetooth_glib_tests_scannerapi_c(self):
-        test_file = self.get_test_loc('ics/bluetooth-glib-tests/scannerapi.c')
-        expected = [
-            u'Copyright (c) 2007 Patrick Hulin',
-            u'Copyright (c) 2007 Imendio AB Authors Tim Janik',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_bluetooth_glib_tests_scannerapi_c_extra_author(self):
         test_file = self.get_test_loc('ics/bluetooth-glib-tests/scannerapi.c')
         expected = [
             u'Copyright (c) 2007 Patrick Hulin',
@@ -3424,7 +3336,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_bouncycastle_notice(self):
         test_file = self.get_test_loc('ics/bouncycastle/NOTICE')
         expected = [
-            u'Copyright (c) 2000-2010 The Legion Of The Bouncy Castle',
+            u'Copyright (c) 2000-2010 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)',
         ]
         check_detection(expected, test_file)
 
@@ -4273,14 +4185,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_chromium_net_data_proxy_resolver_perftest_no_ads_pac(self):
-        test_file = self.get_test_loc('ics/chromium-net-data-proxy_resolver_perftest/no-ads.pac')
-        expected = [
-            u'Copyright 1996-2004, John',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_chromium_net_data_proxy_resolver_perftest_no_ads_pac_trail_name(self):
         test_file = self.get_test_loc('ics/chromium-net-data-proxy_resolver_perftest/no-ads.pac')
         expected = [
@@ -4373,7 +4277,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_net_tools_spdyshark_plugin_rc_in(self):
         test_file = self.get_test_loc('ics/chromium-net-tools-spdyshark/plugin.rc.in')
         expected = [
-            u'Copyright (c) 1998 Gerald Combs <gerald@wireshark.org>, Gilbert Ramirez <gram@alumni.rice.edu> and others',
+            u'Copyright (c) 1998 Gerald Combs <gerald@wireshark.org> , Gilbert Ramirez <gram@alumni.rice.edu> and others',
         ]
         check_detection(expected, test_file)
 
@@ -4459,10 +4363,13 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff/ltmain.sh')
         expected = [
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 2008 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_chromium_sdch_open_vcdiff_missing(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff/missing')
@@ -4481,14 +4388,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_sdch_open_vcdiff_src_addrcache_cc(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/addrcache.cc')
         expected = [
-            u'Copyright 2007 Google Inc. Author Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_addrcache_cc_extra_author(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/addrcache.cc')
-        expected = [
             u'Copyright 2007 Google Inc.',
         ]
         check_detection(expected, test_file)
@@ -4503,27 +4402,11 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_sdch_open_vcdiff_src_blockhash_cc(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/blockhash.cc')
         expected = [
-            u'Copyright 2006, 2008 Google Inc. Authors Chandra Chereddi, Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_blockhash_cc_extra_author(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/blockhash.cc')
-        expected = [
             u'Copyright 2006, 2008 Google Inc.',
         ]
         check_detection(expected, test_file)
 
     def test_ics_chromium_sdch_open_vcdiff_src_blockhash_test_cc(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/blockhash_test.cc')
-        expected = [
-            u'Copyright 2008 Google Inc. Author Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_blockhash_test_cc_extra_author(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/blockhash_test.cc')
         expected = [
             u'Copyright 2008 Google Inc.',
@@ -4554,27 +4437,11 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_sdch_open_vcdiff_src_rolling_hash_h(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/rolling_hash.h')
         expected = [
-            u'Copyright 2007, 2008 Google Inc. Authors Jeff Dean, Sanjay Ghemawat, Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_rolling_hash_h_extra_author(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/rolling_hash.h')
-        expected = [
             u'Copyright 2007, 2008 Google Inc.',
         ]
         check_detection(expected, test_file)
 
     def test_ics_chromium_sdch_open_vcdiff_src_vcdiff_test_sh(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/vcdiff_test.sh')
-        expected = [
-            u'Copyright 2008 Google Inc. Author Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_vcdiff_test_sh_extra_author(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src/vcdiff_test.sh')
         expected = [
             u'Copyright 2008 Google Inc.',
@@ -4598,14 +4465,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_sdch_open_vcdiff_src_google_output_string_h(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src-google/output_string.h')
         expected = [
-            u'Copyright 2008 Google Inc. Author Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_src_google_output_string_h_extra_author(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-src-google/output_string.h')
-        expected = [
             u'Copyright 2008 Google Inc.',
         ]
         check_detection(expected, test_file)
@@ -4625,14 +4484,6 @@ class TestCopyright(FileBasedTesting):
         check_detection(expected, test_file)
 
     def test_ics_chromium_sdch_open_vcdiff_vsprojects_vcdiff_test_bat(self):
-        test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-vsprojects/vcdiff_test.bat')
-        expected = [
-            u'Copyright 2008 Google Inc. Author Lincoln Smith',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_sdch_open_vcdiff_vsprojects_vcdiff_test_bat_extra_author(self):
         test_file = self.get_test_loc('ics/chromium-sdch-open-vcdiff-vsprojects/vcdiff_test.bat')
         expected = [
             u'Copyright 2008 Google Inc.',
@@ -5117,14 +4968,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_chromium_third_party_libjingle_source_talk_session_phone_v4llookup_cc(self):
         test_file = self.get_test_loc('ics/chromium-third_party-libjingle-source-talk-session-phone/v4llookup.cc')
         expected = [
-            u'Copyright 2009, Google Inc. Author lexnikitin@google.com',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_chromium_third_party_libjingle_source_talk_session_phone_v4llookup_cc_extra_author(self):
-        test_file = self.get_test_loc('ics/chromium-third_party-libjingle-source-talk-session-phone/v4llookup.cc')
-        expected = [
             u'Copyright 2009, Google Inc.',
         ]
         check_detection(expected, test_file)
@@ -5283,7 +5126,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_dbus_acinclude_m4(self):
         test_file = self.get_test_loc('ics/dbus/acinclude.m4')
         expected = [
-            u'Copyright (c) 2004 Scott James Remnant <scott@netsplit.com>.',
+            u'Copyright (c) 2004 Scott James Remnant <scott@netsplit.com>',
             u'(c) 2003, 2004, 2005 Thomas Vander Stichele',
         ]
         check_detection(expected, test_file)
@@ -6073,7 +5916,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_dhcpcd_compat_arc4random_c(self):
         test_file = self.get_test_loc('ics/dhcpcd-compat/arc4random.c')
         expected = [
-            u'Copyright 1996 David Mazieres <dm@lcs.mit.edu>.',
+            u'Copyright 1996 David Mazieres <dm@lcs.mit.edu>',
         ]
         check_detection(expected, test_file)
 
@@ -6321,7 +6164,7 @@ class TestCopyright(FileBasedTesting):
             u'(c) 2004 Mihnea Stoenescu',
             u'Copyright (c) 2002-2006 Matt Johnston',
             u'Portions copyright (c) 2004 Mihnea Stoenescu',
-            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland',
+            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi> , Espoo, Finland',
             u'(c) Todd C. Miller',
             u'copyright 1997-2003 Simon Tatham.',
             u'Portions copyright Robert de Bath, Joris van Rantwijk, Delian Delchev, Andreas Schultz, Jeroen Massar, Wez Furlong, Nicolas Barry, Justin Bradford, and CORE SDI S.A.',
@@ -6379,14 +6222,14 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/dropbear/scpmisc.c')
         expected = [
             u'Copyright (c) 2000 Markus Friedl.',
-            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland',
+            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi> , Espoo, Finland',
         ]
         check_detection(expected, test_file)
 
     def test_ics_dropbear_scpmisc_h(self):
         test_file = self.get_test_loc('ics/dropbear/scpmisc.h')
         expected = [
-            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland',
+            u'Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi> , Espoo, Finland',
         ]
         check_detection(expected, test_file)
 
@@ -6585,11 +6428,14 @@ class TestCopyright(FileBasedTesting):
             u'Copyright (c) 2003 Free Software Foundation, Inc.',
             u'Copyright (c) 2003 Free Software Foundation, Inc.',
             u'Copyright 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.',
             u'Copyright (c) 2003 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_expat_configure_in(self):
         test_file = self.get_test_loc('ics/expat/configure.in')
@@ -6617,19 +6463,25 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/expat-conftools/libtool.m4')
         expected = [
             u'Copyright 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_expat_conftools_ltmain_sh(self):
         test_file = self.get_test_loc('ics/expat-conftools/ltmain.sh')
         expected = [
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 2005 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_expat_doc_reference_html(self):
         test_file = self.get_test_loc('ics/expat-doc/reference.html')
@@ -6670,7 +6522,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/expat-lib/Makefile.MPW')
         expected = [
             u'Copyright (c) 2002 Daryle Walker',
-            u'Portions Copyright (c) 2002 Thomas Wegner',
+            u'Portions Copyright (c) 2002 Thomas Wegner see the COPYING',
         ]
         check_detection(expected, test_file)
 
@@ -7405,14 +7257,14 @@ class TestCopyright(FileBasedTesting):
     def test_ics_freetype_src_autofit_afindic_c(self):
         test_file = self.get_test_loc('ics/freetype-src-autofit/afindic.c')
         expected = [
-            u'Copyright 2007, 2011 by Rahul Bhalerao <rahul.bhalerao@redhat.com>, <b.rahul.pm@gmail.com>.',
+            u'Copyright 2007, 2011 by Rahul Bhalerao <rahul.bhalerao@redhat.com>',
         ]
         check_detection(expected, test_file)
 
     def test_ics_freetype_src_autofit_afindic_h(self):
         test_file = self.get_test_loc('ics/freetype-src-autofit/afindic.h')
         expected = [
-            u'Copyright 2007 by Rahul Bhalerao <rahul.bhalerao@redhat.com>, <b.rahul.pm@gmail.com>.',
+            u'Copyright 2007 by Rahul Bhalerao <rahul.bhalerao@redhat.com>',
         ]
         check_detection(expected, test_file)
 
@@ -8100,26 +7952,12 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_genext2fs_genext2fs_c(self):
-        test_file = self.get_test_loc('ics/genext2fs/genext2fs.c')
-        expected = [
-            u'Copyright (c) 2000 Xavier Bestel <xavier.bestel@free.fr>',
-            u'Copyright (c) 1999,2000 by Lineo, inc. and John Beppu',
-            u'Copyright (c) 1999,2000,2001 by John Beppu <beppu@codepoet.org>',
-            u'Copyright (c) 2002 Edward Betts <edward@debian.org>',
-            u'Copyright (c) 2002 Ixia',
-            u'Copyright (c) 2002 Ixia',
-            u'Copyright (c) 2002 Ixia',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_genext2fs_genext2fs_c_trail_name_trail_name_trail_name_trail_name(self):
         test_file = self.get_test_loc('ics/genext2fs/genext2fs.c')
         expected = [
             u'Copyright (c) 2000 Xavier Bestel <xavier.bestel@free.fr>',
             u'Copyright (c) 1999,2000 by Lineo, inc. and John Beppu',
-            u'Beppu Copyright (c) 1999,2000,2001 by John Beppu <beppu@codepoet.org>',
+            u'Copyright (c) 1999,2000,2001 by John Beppu <beppu@codepoet.org>',
             u'Copyright (c) 2002 Edward Betts <edward@debian.org>',
             u'Copyright (c) 2002 Ixia communications',
             u'Copyright (c) 2002 Ixia communications',
@@ -8172,14 +8010,14 @@ class TestCopyright(FileBasedTesting):
 
     def test_ics_guava_guava_ipr(self):
         test_file = self.get_test_loc('ics/guava/guava.ipr')
-        expected = []
+        expected = [u'(c) &amp 36 today.year Google Inc.']
         check_detection(expected, test_file)
 
     @expectedFailure
     def test_ics_guava_guava_ipr_markup(self):
         test_file = self.get_test_loc('ics/guava/guava.ipr')
         expected = [
-            u'Copyright (c) today.year Google Inc.',
+            u'Copyright (c) Google Inc.',
         ]
         check_detection(expected, test_file)
 
@@ -8236,15 +8074,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_harfbuzz_src_harfbuzz_arabic_c(self):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-arabic.c')
         expected = [
-            u'Copyright (c) 2008 Nokia Corporation',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_arabic_c_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-arabic.c')
-        expected = [
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
         ]
         check_detection(expected, test_file)
 
@@ -8266,15 +8096,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_harfbuzz_src_harfbuzz_external_h(self):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-external.h')
         expected = [
-            u'Copyright (c) 2008 Nokia Corporation',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_external_h_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-external.h')
-        expected = [
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
         ]
         check_detection(expected, test_file)
 
@@ -8289,16 +8111,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_harfbuzz_src_harfbuzz_global_h(self):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-global.h')
         expected = [
-            u'Copyright (c) 2008 Nokia Corporation',
-            u'Copyright (c) 2007 Red Hat, Inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_global_h_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-global.h')
-        expected = [
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
             u'Copyright (c) 2007 Red Hat, Inc.',
         ]
         check_detection(expected, test_file)
@@ -8315,15 +8128,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_harfbuzz_src_harfbuzz_greek_c(self):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-greek.c')
         expected = [
-            u'Copyright (c) 2010 Nokia Corporation',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_greek_c_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-greek.c')
-        expected = [
-            u'Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies)',
         ]
         check_detection(expected, test_file)
 
@@ -8331,17 +8136,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-impl.c')
         expected = [
             u'Copyright (c) 1998-2004 David Turner and Werner Lemberg',
-            u'Copyright (c) 2008 Nokia Corporation',
-            u'Copyright (c) 2007 Red Hat, Inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_impl_c_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-impl.c')
-        expected = [
-            u'Copyright (c) 1998-2004 David Turner and Werner Lemberg',
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
             u'Copyright (c) 2007 Red Hat, Inc.',
         ]
         check_detection(expected, test_file)
@@ -8357,17 +8152,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-stream.c')
         expected = [
             u'Copyright (c) 2005 David Turner',
-            u'Copyright (c) 2008 Nokia Corporation',
-            u'Copyright (c) 2007 Red Hat, Inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_stream_c_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-stream.c')
-        expected = [
-            u'Copyright (c) 2005 David Turner',
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
             u'Copyright (c) 2007 Red Hat, Inc.',
         ]
         check_detection(expected, test_file)
@@ -8376,16 +8161,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-stream.h')
         expected = [
             u'Copyright (c) 2005 David Turner',
-            u'Copyright (c) 2008 Nokia Corporation',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_harfbuzz_src_harfbuzz_stream_h_trail_misc(self):
-        test_file = self.get_test_loc('ics/harfbuzz-src/harfbuzz-stream.h')
-        expected = [
-            u'Copyright (c) 2005 David Turner',
-            u'Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)',
+            u'Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies)',
         ]
         check_detection(expected, test_file)
 
@@ -8638,7 +8414,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/ipsec-tools-src-racoon/grabmyaddr.c')
         expected = [
             u'Copyright (c) 1995, 1996, 1997, and 1998 WIDE Project.',
-            u'Copyright (c) 2008 Timo Teras <timo.teras@iki.fi>.',
+            u'Copyright (c) 2008 Timo Teras <timo.teras@iki.fi>',
         ]
         check_detection(expected, test_file)
 
@@ -8898,7 +8674,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-
     def test_ics_iptables_extensions_libxt_tee_c(self):
         test_file = self.get_test_loc('ics/iptables-extensions/libxt_TEE.c')
         expected = [
@@ -9015,14 +8790,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_iptables_iptables_iptables_xslt(self):
-        test_file = self.get_test_loc('ics/iptables-iptables/iptables.xslt')
-        expected = [
-            u'Copyright 2006 UfoMechanic Author azez@ufomechanic.net',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_iptables_iptables_iptables_xslt_extra_author(self):
         test_file = self.get_test_loc('ics/iptables-iptables/iptables.xslt')
         expected = [
@@ -9184,11 +8951,11 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/javassist-src-main-javassist/CtClass.java')
         expected = [
             u'Copyright (c) 1999-2007 Shigeru Chiba.',
-            u'(c) 1999-2010 Shigeru Chiba.',
+            u'Copyright (c) 1999-2010 Shigeru Chiba.',
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
+    # @expectedFailure
     def test_ics_javassist_src_main_javassist_ctclass_java_lead_copy(self):
         test_file = self.get_test_loc('ics/javassist-src-main-javassist/CtClass.java')
         expected = [
@@ -9388,22 +9155,20 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
     def test_ics_jpeg_ltconfig(self):
         test_file = self.get_test_loc('ics/jpeg/ltconfig')
         expected = [
-            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
-            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
+            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>'
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
 
-    @expectedFailure
     def test_ics_jpeg_ltmain_sh(self):
         test_file = self.get_test_loc('ics/jpeg/ltmain.sh')
         expected = [
-            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
+            u'Copyright (c) 1996-1998 Free Software Foundation, Inc. Gordon Matzigkeit <gord@gnu.ai.mit.edu>'
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
 
     def test_ics_jpeg_notice(self):
         test_file = self.get_test_loc('ics/jpeg/NOTICE')
@@ -9490,12 +9255,12 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_asm_arm_bitops_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm/bitops.h')
         expected = [
-            u'Copyright 1995, Russell King. Various',
+            u'Copyright 1995, Russell King.',
             u'Copyright 2001, Nicolas Pitre',
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
+    # @expectedFailure
     def test_ics_kernel_headers_original_asm_arm_bitops_h_extra_various(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm/bitops.h')
         expected = [
@@ -9691,12 +9456,12 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_asm_arm_arch_board_perseus2_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/board-perseus2.h')
         expected = [
-            u'Copyright 2003 by Texas Instruments Incorporated OMAP730 / Perseus2',
-            u'Copyright (c) 2001 RidgeRun, Inc.',
+            u'Copyright 2003 by Texas Instruments Incorporated',
+            u'Copyright (c) 2001 RidgeRun, Inc. (http://www.ridgerun.com)',
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
+    # @expectedFailure
     def test_ics_kernel_headers_original_asm_arm_arch_board_perseus2_h_extra_name(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/board-perseus2.h')
         expected = [
@@ -9738,14 +9503,6 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_asm_arm_arch_hardware_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/hardware.h')
         expected = [
-            u'Copyright (c) 2001 RidgeRun, Inc. Author RidgeRun, Inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_kernel_headers_original_asm_arm_arch_hardware_h_extra_author(self):
-        test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/hardware.h')
-        expected = [
             u'Copyright (c) 2001 RidgeRun, Inc.',
         ]
         check_detection(expected, test_file)
@@ -9767,17 +9524,13 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_asm_arm_arch_mcbsp_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/mcbsp.h')
         expected = [
-            u'Copyright (c) 2002 RidgeRun, Inc. Author Steve Johnson',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_kernel_headers_original_asm_arm_arch_mcbsp_h_extra_author(self):
-        test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/mcbsp.h')
-        expected = [
             u'Copyright (c) 2002 RidgeRun, Inc.',
         ]
         check_detection(expected, test_file)
+        expected = [
+            u'Steve Johnson',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_kernel_headers_original_asm_arm_arch_memory_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-asm-arm-arch/memory.h')
@@ -10133,42 +9886,23 @@ class TestCopyright(FileBasedTesting):
         expected = [
             u'Copyright (c) 1998 David S. Miller (davem@redhat.com)',
             u'Copyright 2001 Jeff Garzik <jgarzik@pobox.com>',
-            u'Portions Copyright 2001 Sun Microsystems',
+            u'Portions Copyright 2001 Sun Microsystems (thockin@sun.com)',
             u'Portions Copyright 2002 Intel',
         ]
         check_detection(expected, test_file)
 
-    def test_ics_kernel_headers_original_linux_ext2_fs_h(self):
-        test_file = self.get_test_loc('ics/kernel-headers-original-linux/ext2_fs.h')
-        expected = [
-            u'Copyright (c) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI',
-            u'Copyright (c) 1991, 1992 Linus Torvalds',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_kernel_headers_original_linux_ext2_fs_h_trail_name(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-linux/ext2_fs.h')
         expected = [
-            u'Copyright (C) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI - Institut Blaise Pascal',
+            u'Copyright (c) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI - Institut Blaise Pascal',
             u'Copyright (c) 1991, 1992 Linus Torvalds',
         ]
         check_detection(expected, test_file)
 
-    def test_ics_kernel_headers_original_linux_ext3_fs_h(self):
-        test_file = self.get_test_loc('ics/kernel-headers-original-linux/ext3_fs.h')
-        expected = [
-            u'Copyright (c) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI',
-            u'Copyright (c) 1991, 1992 Linus Torvalds',
-            u'(c) Daniel Phillips, 2001',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_kernel_headers_original_linux_ext3_fs_h_trail_name(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-linux/ext3_fs.h')
         expected = [
-            u'Copyright (C) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI - Institut Blaise Pascal',
+            u'Copyright (c) 1992, 1993, 1994, 1995 Remy Card (card@masi.ibp.fr) Laboratoire MASI - Institut Blaise Pascal',
             u'Copyright (c) 1991, 1992 Linus Torvalds',
             u'(c) Daniel Phillips, 2001',
         ]
@@ -10499,7 +10233,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_linux_plist_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-linux/plist.h')
         expected = [
-            u'(c) 2002-2003 Intel Corp Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>.',
+            u'(c) 2002-2003 Intel Corp Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>',
             u'(c) MontaVista Software, Inc.',
             u'(c) 2005 Thomas Gleixner <tglx@linutronix.de>',
         ]
@@ -10921,7 +10655,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_kernel_headers_original_sound_asound_h(self):
         test_file = self.get_test_loc('ics/kernel-headers-original-sound/asound.h')
         expected = [
-            u'Copyright (c) 1994-2003 by Jaroslav Kysela <perex@perex.cz>, Abramo Bagnara <abramo@alsa-project.org>',
+            u'Copyright (c) 1994-2003 by Jaroslav Kysela <perex@perex.cz> , Abramo Bagnara <abramo@alsa-project.org>',
         ]
         check_detection(expected, test_file)
 
@@ -10987,37 +10721,49 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/libffi/ltcf-c.sh')
         expected = [
             u'Copyright (c) 1996-2000, 2001 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_libffi_ltcf_cxx_sh(self):
         test_file = self.get_test_loc('ics/libffi/ltcf-cxx.sh')
         expected = [
             u'Copyright (c) 1996-1999, 2000, 2001, 2003 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_libffi_ltconfig(self):
         test_file = self.get_test_loc('ics/libffi/ltconfig')
         expected = [
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 1996-2000 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 1999-2000 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_libffi_ltmain_sh(self):
         test_file = self.get_test_loc('ics/libffi/ltmain.sh')
         expected = [
             u'Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.',
-            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996',
             u'Copyright (c) 2007 Free Software Foundation, Inc.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Gordon Matzigkeit <gord@gnu.ai.mit.edu>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_libffi_missing(self):
         test_file = self.get_test_loc('ics/libffi/missing')
@@ -11225,7 +10971,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
     def test_ics_libffi_src_powerpc_ffitarget_h(self):
         test_file = self.get_test_loc('ics/libffi-src-powerpc/ffitarget.h')
         expected = [
@@ -11451,16 +11196,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/libnl-headers-netlink-route/addr.h')
         expected = [
             u'Copyright (c) 2003-2008 Thomas Graf <tgraf@suug.ch>',
-            u'Copyright (c) 2003-2006 Baruch Even <baruch@ev-en.org>, Mediatrix Telecom, inc.',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_libnl_headers_netlink_route_addr_h_trail_email(self):
-        test_file = self.get_test_loc('ics/libnl-headers-netlink-route/addr.h')
-        expected = [
-            u'Copyright (c) 2003-2008 Thomas Graf <tgraf@suug.ch>',
-            u'Copyright (c) 2003-2006 Baruch Even <baruch@ev-en.org>, Mediatrix Telecom, inc. <ericb@mediatrix.com>',
+            u'Copyright (c) 2003-2006 Baruch Even <baruch@ev-en.org> , Mediatrix Telecom, inc. <ericb@mediatrix.com>',
         ]
         check_detection(expected, test_file)
 
@@ -11798,13 +11534,13 @@ class TestCopyright(FileBasedTesting):
     def test_ics_libvpx_examples_includes_geshi_docs_geshi_doc_html(self):
         test_file = self.get_test_loc('ics/libvpx-examples-includes-geshi-docs/geshi-doc.html')
         expected = [
-            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann',
-            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann',
-            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann',
-            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann',
-            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann',
+            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann (http://qbnz.com/highlighter/ and http://geshi.org/)',
+            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann (http://qbnz.com/highlighter/ and http://geshi.org/)',
+            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann (http://qbnz.com/highlighter/ and http://geshi.org/)',
+            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann (http://qbnz.com/highlighter/ and http://geshi.org/)',
+            u'(c) 2004 - 2007 Nigel McNie, 2007 - 2008 Benny Baumann (http://qbnz.com/highlighter/ and http://geshi.org/)',
             u'Copyright (c) 2004 Nigel McNie',
-            u"Copyright (c) 2008 &lt name&gt (&lt website URL&gt ) <span class coMULTI'>&nbsp",
+            u"Copyright (c) 2008 &lt name&gt (&lt website URL&gt ) <span class coMULTI'> &nbsp",
         ]
         check_detection(expected, test_file)
 
@@ -11930,7 +11666,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_libvpx_nestegg_m4_pkg_m4(self):
         test_file = self.get_test_loc('ics/libvpx-nestegg-m4/pkg.m4')
         expected = [
-            u'Copyright (c) 2004 Scott James Remnant <scott@netsplit.com>.',
+            u'Copyright (c) 2004 Scott James Remnant <scott@netsplit.com>',
         ]
         check_detection(expected, test_file)
 
@@ -12064,90 +11800,42 @@ class TestCopyright(FileBasedTesting):
     def test_ics_markdown_markdown_extensions_abbr_py(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/abbr.py')
         expected = [
-            u'Copyright 2007-2008 Waylan Limberg',
+            u'Copyright 2007-2008 Waylan Limberg (http://achinghead.com/) Seemant Kulleen (http://www.kulleen.org/)',
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
-    def test_ics_markdown_markdown_extensions_abbr_py_trail_url(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/abbr.py')
-        expected = [
-            u'Copyright 2007-2008 [Waylan Limberg](http://achinghead.com/) [Seemant Kulleen](http://www.kulleen.org/)',
-        ]
-        check_detection(expected, test_file)
-
-    def test_ics_markdown_markdown_extensions_codehilite_py(self):
+    def test_ics_markdown_markdown_extensions_codehilite_py_trail_url(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/codehilite.py')
         expected = [
             u'Copyright 2006-2008 Waylan Limberg',
         ]
         check_detection(expected, test_file)
 
-    @expectedFailure
-    def test_ics_markdown_markdown_extensions_codehilite_py_trail_url(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/codehilite.py')
-        expected = [
-            u'Copyright 2006-2008 [Waylan Limberg](http://achinghead.com/).',
-        ]
-        check_detection(expected, test_file)
-
-    def test_ics_markdown_markdown_extensions_def_list_py(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/def_list.py')
-        expected = [
-            u'Copyright 2008 - Waylan Limberg',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_markdown_markdown_extensions_def_list_py_trail_url(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/def_list.py')
         expected = [
-            u'Copyright 2008 - [Waylan Limberg](http://achinghead.com)',
+            u'Copyright 2008 - Waylan Limberg (http://achinghead.com)',
         ]
         check_detection(expected, test_file)
 
-    def test_ics_markdown_markdown_extensions_html_tidy_py(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/html_tidy.py')
-        expected = [
-            u'Copyright (c) 2008 Waylan Limberg',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_markdown_markdown_extensions_html_tidy_py_trail_url(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/html_tidy.py')
         expected = [
-            u'Copyright (c)2008 [Waylan Limberg](http://achinghead.com)',
+            u'Copyright (c) 2008 Waylan Limberg (http://achinghead.com)',
         ]
         check_detection(expected, test_file)
 
-    def test_ics_markdown_markdown_extensions_tables_py(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/tables.py')
-        expected = [
-            u'Copyright 2009 - Waylan Limberg',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_markdown_markdown_extensions_tables_py_trail_url(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/tables.py')
         expected = [
-            u'Copyright 2009 - [Waylan Limberg](http://achinghead.com)',
+            u'Copyright 2009 - Waylan Limberg (http://achinghead.com)',
         ]
         check_detection(expected, test_file)
 
     def test_ics_markdown_markdown_extensions_toc_py(self):
         test_file = self.get_test_loc('ics/markdown-markdown-extensions/toc.py')
         expected = [
-            u'(c) 2008 Jack Miller',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_markdown_markdown_extensions_toc_py_trail_url(self):
-        test_file = self.get_test_loc('ics/markdown-markdown-extensions/toc.py')
-        expected = [
-            u'(c) 2008 [Jack Miller](http://codezen.org)',
+            u'(c) 2008 Jack Miller (http://codezen.org)',
         ]
         check_detection(expected, test_file)
 
@@ -13484,7 +13172,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/openssl-crypto-rc4-asm/rc4-ia64.pl')
         expected = [
             u'Copyright (c) 2005 Hewlett-Packard Development Company, L.P.',
-            u'(c) 2005 Hewlett-Packard Development Company',
+            u'Copyright (c) 2005 Hewlett-Packard Development Company, L.P.',
         ]
         check_detection(expected, test_file)
 
@@ -13986,15 +13674,6 @@ class TestCopyright(FileBasedTesting):
         ]
         check_detection(expected, test_file)
 
-    def test_ics_oprofile_utils_opcontrol(self):
-        test_file = self.get_test_loc('ics/oprofile-utils/opcontrol')
-        expected = [
-            u'Copyright 2002 Read',
-            u'Copyright IBM Corporation 2007',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
     def test_ics_oprofile_utils_opcontrol_misc(self):
         test_file = self.get_test_loc('ics/oprofile-utils/opcontrol')
         expected = [
@@ -14456,7 +14135,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/ppp-pppd-plugins-rp-pppoe/plugin.c')
         expected = [
             u'Copyright (c) 2001 by Roaring Penguin Software Inc., Michal Ostrowski and Jamal Hadi Salim.',
-            u'Copyright 2000 Michal Ostrowski <mostrows@styx.uwaterloo.ca>, Jamal Hadi Salim <hadi@cyberus.ca>',
+            u'Copyright 2000 Michal Ostrowski <mostrows@styx.uwaterloo.ca> , Jamal Hadi Salim <hadi@cyberus.ca>',
         ]
         check_detection(expected, test_file)
 
@@ -14494,15 +14173,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_proguard_docs_acknowledgements_html(self):
         test_file = self.get_test_loc('ics/proguard-docs/acknowledgements.html')
         expected = [
-            u"Copyright (c) 2002-2009 <a href http://www.graphics.cornell.edu/~eric/'>Eric",
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_proguard_docs_acknowledgements_html_markup(self):
-        test_file = self.get_test_loc('ics/proguard-docs/acknowledgements.html')
-        expected = [
-            u'Copyright (c) 2002-2009 http://www.graphics.cornell.edu/~eric/ Eric Lafortune',
+            u"Copyright (c) 2002-2009 <a href http://www.graphics.cornell.edu/~eric/'> Eric Lafortune",
         ]
         check_detection(expected, test_file)
 
@@ -14825,17 +14496,13 @@ class TestCopyright(FileBasedTesting):
     def test_ics_qemu_device_tree_c(self):
         test_file = self.get_test_loc('ics/qemu/device_tree.c')
         expected = [
-            u'Copyright 2008 IBM Corporation. Authors Jerone Young <jyoung5@us.ibm.com> Hollis Blanchard <hollisb@us.ibm.com>',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_qemu_device_tree_c_extra_author(self):
-        test_file = self.get_test_loc('ics/qemu/device_tree.c')
-        expected = [
             u'Copyright 2008 IBM Corporation.',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
+        expected = [
+            u'Jerone Young <jyoung5@us.ibm.com> Hollis Blanchard <hollisb@us.ibm.com>',
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_qemu_dma_helpers_c(self):
         test_file = self.get_test_loc('ics/qemu/dma-helpers.c')
@@ -14929,17 +14596,7 @@ class TestCopyright(FileBasedTesting):
         expected = [
             u'Copyright (c) 2006 Fabrice Bellard',
             u'(c) Copyright 2008 Semihalf',
-            u'(c) Copyright 2000-2005 Wolfgang Denk',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_qemu_loader_c_trail_name(self):
-        test_file = self.get_test_loc('ics/qemu/loader.c')
-        expected = [
-            u'Copyright (c) 2006 Fabrice Bellard',
-            u'(c) Copyright 2008 Semihalf',
-            u'(C) Copyright 2000-2005 Wolfgang Denk, DENX Software Engineering, wd@denx.de.',
+            u'(c) Copyright 2000-2005 Wolfgang Denk, DENX Software Engineering, wd@denx.de.',
         ]
         check_detection(expected, test_file)
 
@@ -15073,21 +14730,11 @@ class TestCopyright(FileBasedTesting):
     def test_ics_qemu_uboot_image_h(self):
         test_file = self.get_test_loc('ics/qemu/uboot_image.h')
         expected = [
-            u'(c) Copyright 2000-2005 Wolfgang Denk',
+            u'(c) Copyright 2000-2005 Wolfgang Denk, DENX Software Engineering, wd@denx.de.',
         ]
         check_detection(expected, test_file)
 
     def test_ics_qemu_usb_linux_c(self):
-        test_file = self.get_test_loc('ics/qemu/usb-linux.c')
-        expected = [
-            u'Copyright (c) 2005 Fabrice Bellard',
-            u'Copyright (c) 2008 Max Krasnyansky Support',
-            u'Copyright 2008 TJ',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_qemu_usb_linux_c_extra_support_trail_email(self):
         test_file = self.get_test_loc('ics/qemu/usb-linux.c')
         expected = [
             u'Copyright (c) 2005 Fabrice Bellard',
@@ -16276,7 +15923,6 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/quake-quake-src-QW-client/keys.h')
         expected = [
             u'Copyright (c) 1996-1997 Id Software, Inc.',
-            u'(c) Mouse Wheel Support',
         ]
         check_detection(expected, test_file)
 
@@ -16293,7 +15939,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/quake-quake-src-QW-client/menu.c')
         expected = [
             u'Copyright (c) 1996-1997 Id Software, Inc.',
-            u'(c) 1996 Id',
+            u"(c) 1996 Id Software,', 0Inc.",
         ]
         check_detection(expected, test_file)
 
@@ -16494,7 +16140,6 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/quake-src-com-android-quake/QuakeLib.java')
         expected = [
             u'Copyright (c) 2007 The Android Open Source Project',
-            u'(c) Mouse Wheel Support',
         ]
         check_detection(expected, test_file)
 
@@ -16858,23 +16503,16 @@ class TestCopyright(FileBasedTesting):
         expected = [
             u'Copyright 2009 techdoc.dot Jennifer Hruska',
             u'Copyright (c) 2009 The Android Open Source Project',
+            u'Copyright 2009 Sonic Network, Inc.'
         ]
         check_detection(expected, test_file)
 
     def test_ics_sonivox_docs_jet_creator_user_manual_html(self):
         test_file = self.get_test_loc('ics/sonivox-docs/JET_Creator_User_Manual.html')
         expected = [
-            u'Copyright 2009 Confidential Information',
+            u'Jennifer Hruska Copyright 2009',
             u'Copyright (c) 2009 The Android Open Source Project',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_sonivox_docs_jet_creator_user_manual_html_markup_lead_name(self):
-        test_file = self.get_test_loc('ics/sonivox-docs/JET_Creator_User_Manual.html')
-        expected = [
-            u'Jennifer Hruska Copyright 2009 Confidential Information',
-            u'Copyright (c) 2009 The Android Open Source Project',
+            u'Copyright 2009 Sonic Network, Inc.'
         ]
         check_detection(expected, test_file)
 
@@ -16882,6 +16520,7 @@ class TestCopyright(FileBasedTesting):
         test_file = self.get_test_loc('ics/sonivox-docs/JET_Programming_Manual.html')
         expected = [
             u'Copyright (c) 2009 The Android Open Source Project',
+            u'Copyright 2009 Sonic Network, Inc.'
         ]
         check_detection(expected, test_file)
 
@@ -17027,17 +16666,14 @@ class TestCopyright(FileBasedTesting):
     def test_ics_speex_libspeex_fixed_bfin_h(self):
         test_file = self.get_test_loc('ics/speex-libspeex/fixed_bfin.h')
         expected = [
-            u'Copyright (c) 2005 Analog Devices Author Jean-Marc Valin',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_speex_libspeex_fixed_bfin_h_extra_author(self):
-        test_file = self.get_test_loc('ics/speex-libspeex/fixed_bfin.h')
-        expected = [
             u'Copyright (c) 2005 Analog Devices',
         ]
         check_detection(expected, test_file)
+
+        expected = [
+            u'Jean-Marc Valin'
+        ]
+        check_detection(expected, test_file, what='authors')
 
     def test_ics_speex_libspeex_kiss_fft_c(self):
         test_file = self.get_test_loc('ics/speex-libspeex/kiss_fft.c')
@@ -17212,6 +16848,14 @@ class TestCopyright(FileBasedTesting):
         expected = [
             u'Copyright 2007, 2008 Nuance Communciations, Inc.',
             u'Copyright (c) 2007 Project Admins leethomason',
+        ]
+        check_detection(expected, test_file)
+
+    def test_ics_srec_tools_grxmlcompile_grxmlcompile_cpp_current(self):
+        test_file = self.get_test_loc('ics/srec-tools-grxmlcompile/grxmlcompile.cpp')
+        expected = [
+            u'Copyright 2007, 2008 Nuance Communciations, Inc.',
+            u'Copyright (c) 2007 Project',
         ]
         check_detection(expected, test_file)
 
@@ -17803,7 +17447,7 @@ class TestCopyright(FileBasedTesting):
     def test_ics_strace_strace_graph(self):
         test_file = self.get_test_loc('ics/strace/strace-graph')
         expected = [
-            u'Copyright (c) 1998 by Richard Braakman <dark@xs4all.nl>.',
+            u'Copyright (c) 1998 by Richard Braakman <dark@xs4all.nl>',
         ]
         check_detection(expected, test_file)
 
@@ -17862,17 +17506,9 @@ class TestCopyright(FileBasedTesting):
     def test_ics_strace_strace_linux_s390_syscallent_h(self):
         test_file = self.get_test_loc('ics/strace-strace-linux-s390/syscallent.h')
         expected = [
-            u'Copyright (c) 2000 IBM Deutschland Entwicklung GmbH, IBM Coporation Authors',
-        ]
-        check_detection(expected, test_file)
-
-    @expectedFailure
-    def test_ics_strace_strace_linux_s390_syscallent_h_extra_author(self):
-        test_file = self.get_test_loc('ics/strace-strace-linux-s390/syscallent.h')
-        expected = [
             u'Copyright (c) 2000 IBM Deutschland Entwicklung GmbH, IBM Coporation',
         ]
-        check_detection(expected, test_file)
+        check_detection(expected, test_file, what='copyrights')
 
     def test_ics_strace_strace_linux_sh_syscallent_h(self):
         test_file = self.get_test_loc('ics/strace-strace-linux-sh/syscallent.h')

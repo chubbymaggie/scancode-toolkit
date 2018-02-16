@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2018 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -33,6 +33,7 @@ import os
 
 from commoncode import fileutils
 from commoncode import filetype
+from commoncode.system import on_linux
 import typecode
 
 from extractcode import all_kinds
@@ -50,7 +51,6 @@ from extractcode import libarchive2
 from extractcode.uncompress import uncompress_gzip
 from extractcode.uncompress import uncompress_bzip2
 
-
 logger = logging.getLogger(__name__)
 TRACE = False
 TRACE_DEEP = False
@@ -59,8 +59,6 @@ if TRACE:
     import sys
     logging.basicConfig(stream=sys.stdout)
     logger.setLevel(logging.DEBUG)
-
-
 
 """
 Archive formats handling. The purpose of this module is to select an extractor
@@ -147,6 +145,8 @@ def get_best_handler(location, kinds=all_kinds):
     """
     Return the best handler of None for the file at location.
     """
+    if on_linux:
+        location = fileutils.fsencode(location)
     location = os.path.abspath(os.path.expanduser(location))
     if not filetype.is_file(location):
         return
@@ -161,6 +161,9 @@ def get_handlers(location):
     Return an iterable of (handler, type_matched, mime_matched,
     extension_matched,) for this `location`.
     """
+    if on_linux:
+        location = fileutils.fsencode(location)
+
     if filetype.is_file(location):
         T = typecode.contenttype.get_type(location)
         ftype = T.filetype_file.lower()
@@ -177,7 +180,11 @@ def get_handlers(location):
             # default to False
             type_matched = handler.filetypes and any(t in ftype for t in handler.filetypes)
             mime_matched = handler.mimetypes and any(m in mtype for m in handler.mimetypes)
-            extension_matched = handler.extensions and location.lower().endswith(handler.extensions)
+            exts = handler.extensions
+            if exts:
+                if on_linux:
+                    exts = tuple(fileutils.fsencode(e) for e in exts)
+                extension_matched = exts and location.lower().endswith(exts)
 
             if TRACE_DEEP:
                 handler_name = handler.name
@@ -299,17 +306,20 @@ def extract_twice(location, target_dir, extractor1, extractor2):
     hard to trace and debug very quickly. A depth of two is simple and sane and
     covers most common cases.
     """
+    if on_linux:
+        location = fileutils.fsencode(location)
+        target_dir = fileutils.fsencode(target_dir)
     abs_location = os.path.abspath(os.path.expanduser(location))
     abs_target_dir = unicode(os.path.abspath(os.path.expanduser(target_dir)))
     # extract first the intermediate payload to a temp dir
-    temp_target = unicode(fileutils.get_temp_dir('extract'))
+    temp_target = unicode(fileutils.get_temp_dir(prefix='scancode-extract-'))
     warnings = extractor1(abs_location, temp_target)
     if TRACE:
         logger.debug('extract_twice: temp_target: %(temp_target)r' % locals())
 
     # extract this intermediate payload to the final target_dir
     try:
-        inner_archives = list(fileutils.file_iter(temp_target))
+        inner_archives = list(fileutils.resource_iter(temp_target, with_dirs=False))
         if not inner_archives:
             warnings.append(location + ': No files found in archive.')
         else:
@@ -335,7 +345,7 @@ def extract_with_fallback(location, target_dir, extractor1, extractor2):
     abs_location = os.path.abspath(os.path.expanduser(location))
     abs_target_dir = unicode(os.path.abspath(os.path.expanduser(target_dir)))
     # attempt extract first to a temp dir
-    temp_target1 = unicode(fileutils.get_temp_dir('extract1'))
+    temp_target1 = unicode(fileutils.get_temp_dir(prefix='scancode-extract1-'))
     try:
         warnings = extractor1(abs_location, temp_target1)
         if TRACE:
@@ -343,7 +353,7 @@ def extract_with_fallback(location, target_dir, extractor1, extractor2):
         fileutils.copytree(temp_target1, abs_target_dir)
     except:
         try:
-            temp_target2 = unicode(fileutils.get_temp_dir('extract2'))
+            temp_target2 = unicode(fileutils.get_temp_dir(prefix='scancode-extract2-'))
             warnings = extractor2(abs_location, temp_target2)
             if TRACE:
                 logger.debug('extract_with_fallback: temp_target2: %(temp_target2)r' % locals())
@@ -365,7 +375,7 @@ def try_to_extract(location, target_dir, extractor):
     """
     abs_location = os.path.abspath(os.path.expanduser(location))
     abs_target_dir = unicode(os.path.abspath(os.path.expanduser(target_dir)))
-    temp_target = unicode(fileutils.get_temp_dir('extract1'))
+    temp_target = unicode(fileutils.get_temp_dir(prefix='scancode-extract1-'))
     warnings = []
     try:
         warnings = extractor(abs_location, temp_target)
@@ -378,9 +388,9 @@ def try_to_extract(location, target_dir, extractor):
         fileutils.delete(temp_target)
     return warnings
 
-
 # High level aliases to lower level extraction functions
 ########################################################
+
 
 extract_tar = libarchive2.extract
 extract_patch = patch.extract
@@ -398,7 +408,6 @@ extract_zip = functools.partial(extract_with_fallback, extractor1=libarchive2.ex
 
 extract_springboot = functools.partial(try_to_extract, extractor=extract_zip)
 
-
 extract_iso = sevenzip.extract
 extract_rar = sevenzip.extract
 extract_rpm = sevenzip.extract
@@ -410,7 +419,6 @@ extract_nsis = sevenzip.extract
 extract_ishield = sevenzip.extract
 extract_Z = sevenzip.extract
 extract_xarpkg = sevenzip.extract
-
 
 # Archive handlers.
 ####################

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016 nexB Inc. and others. All rights reserved.
+# Copyright (c) 2017 nexB Inc. and others. All rights reserved.
 # http://nexb.com and https://github.com/nexB/scancode-toolkit/
 # The ScanCode software is licensed under the Apache License version 2.0.
 # Data generated with ScanCode require an acknowledgment.
@@ -26,13 +26,31 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from collections import namedtuple
+import logging
 import string
-
-import typecode.contenttype
+import sys
 
 from packagedcode import models
 from packagedcode import nevra
 from packagedcode.pyrpm.rpm import RPM
+
+import typecode.contenttype
+
+TRACE = False
+
+
+def logger_debug(*args):
+    pass
+
+
+logger = logging.getLogger(__name__)
+
+if TRACE:
+    logging.basicConfig(stream=sys.stdout)
+    logger.setLevel(logging.DEBUG)
+
+    def logger_debug(*args):
+        return logger.debug(' '.join(isinstance(a, basestring) and a or repr(a) for a in args))
 
 # TODO: retrieve dependencies
 
@@ -62,7 +80,6 @@ RPM_TAGS = (
     'dist_url',
     'bin_or_src',
 )
-
 
 RPMInfo = namedtuple('RPMInfo', list(RPM_TAGS))
 
@@ -106,6 +123,7 @@ class EVR(namedtuple('EVR', 'epoch version release')):
     """
     The RPM Epoch, Version, Release tuple.
     """
+
     # note: the order of the named tuple is the sort order.
     # But for creation we put the rarely used epoch last
     def __new__(self, version, release, epoch=None):
@@ -169,7 +187,7 @@ class RpmPackage(models.Package):
     related_packages = models.ListType(models.ModelType(RPMRelatedPackage))
 
     @classmethod
-    def recognize(location):
+    def recognize(cls, location):
         return parse(location)
 
 
@@ -179,6 +197,7 @@ def parse(location):
     not an RPM.
     """
     infos = info(location, include_desc=True)
+    logger_debug('parse: infos', infos)
     if not infos:
         return
 
@@ -192,9 +211,8 @@ def parse(location):
     if infos.source_rpm:
         epoch, name, version, release, _arch = nevra.from_name(infos.source_rpm)
         evr = EVR(version, release, epoch)
-        related_packages = [RPMRelatedPackage(name=name,
-                                              version=evr,
-                                              payload_type=models.payload_src)]
+        related_packages = [
+            RPMRelatedPackage(name=name, version=evr, payload_type=models.payload_src)]
 
     package = RpmPackage(
         summary=infos.summary,
@@ -204,9 +222,7 @@ def parse(location):
         homepage_url=infos.url,
         distributors=[models.Party(name=infos.distribution)],
         vendors=[models.Party(name=infos.vendor)],
-
         asserted_licenses=asserted_licenses,
-
         related_packages=related_packages
     )
     return package

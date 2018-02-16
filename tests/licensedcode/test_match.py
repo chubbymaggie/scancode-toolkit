@@ -39,7 +39,6 @@ from licensedcode.spans import Span
 from licensedcode.match import merge_matches
 from licensedcode.match import get_full_matched_text
 
-
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
@@ -280,11 +279,24 @@ class TestMergeMatches(FileBasedTesting):
 
     def test_merge_does_not_merge_overlapping_matches_of_same_rules_if_in_sequence_with_gaps(self):
         r1 = Rule(text_file='r1', licenses=['apache-2.0', 'gpl'])
+        r1.length = 50
 
         m1 = LicenseMatch(rule=r1, qspan=Span(1, 3), ispan=Span(1, 3))
         m2 = LicenseMatch(rule=r1, qspan=Span(14, 20), ispan=Span(4, 10))
 
-        assert [LicenseMatch(rule=r1, qspan=Span(1, 3) | Span(14, 20), ispan=Span(1, 10))] == merge_matches([m1, m2])
+        expected = [LicenseMatch(rule=r1, qspan=Span(1, 3) | Span(14, 20), ispan=Span(1, 10))]
+        results = merge_matches([m1, m2])
+        assert expected == results
+
+    def test_merge_does_not_merge_overlapping_matches_of_same_rules_if_in_sequence_with_gaps_for_long_match(self):
+        r1 = Rule(text_file='r1', licenses=['apache-2.0', 'gpl'])
+        r1.length = 20
+        m1 = LicenseMatch(rule=r1, qspan=Span(1, 10), ispan=Span(1, 10))
+        m2 = LicenseMatch(rule=r1, qspan=Span(14, 20), ispan=Span(14, 20))
+
+        expected = [LicenseMatch(rule=r1, qspan=Span(1, 10) | Span(14, 20), ispan=Span(1, 10) | Span(14, 20))]
+        results = merge_matches([m1, m2])
+        assert expected == results
 
     def test_merge_does_not_merge_overlapping_matches_of_same_rules_if_in_not_sequence(self):
         r1 = Rule(text_file='r1', licenses=['apache-2.0', 'gpl'])
@@ -661,14 +673,14 @@ class TestLicenseMatchScore(FileBasedTesting):
         m1 = LicenseMatch(rule=r1, qspan=Span(0, 2), ispan=Span(0, 2))
         assert m1.score() == 50
 
-    def test_LicenseMatch_score_25_with_stored_relvance(self):
+    def test_LicenseMatch_score_25_with_stored_relevance(self):
         r1 = Rule(text_file='r1', licenses=['apache-2.0'])
         r1.relevance = 50
         r1.length = 6
 
         m1 = LicenseMatch(rule=r1, qspan=Span(0, 2), ispan=Span(0, 2))
         # NB we do not have a query here
-        assert m1.score() == 50
+        assert m1.score() == 25
 
     def test_LicenseMatch_score_0(self):
         r1 = Rule(text_file='r1', licenses=['apache-2.0'])
@@ -701,6 +713,7 @@ class TestLicenseMatchScore(FileBasedTesting):
 
         m1 = LicenseMatch(rule=r1, qspan=Span(0, 19) | Span(30, 51), ispan=Span(0, 41))
         assert m1.score() == 80.77
+
 
 class TestCollectLicenseMatchTexts(FileBasedTesting):
     test_data_dir = TEST_DATA_DIR
